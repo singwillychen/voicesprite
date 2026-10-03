@@ -262,6 +262,35 @@ input[type="range"]:disabled { opacity: .4; }
 .board-state.ok { color: #0f7a48; }
 .board-row .btn-row { gap: 8px; }
 
+/* ---------- Local engine setup ---------- */
+.setup-block { margin-bottom: 24px; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.flow-box { flex: 1 1 160px; display: grid; gap: 2px; padding: 12px 14px; border: 3px solid var(--ink); border-radius: 14px; background: var(--paper); }
+.flow-box span { font-size: 13px; color: var(--muted); }
+.flow-arrow { font-family: var(--font-display); font-size: 24px; }
+.req-table { width: 100%; border-collapse: collapse; }
+.req-table th, .req-table td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 2px dashed #ddd; }
+.req-table th { white-space: nowrap; width: 1%; }
+.os-tabs { margin-bottom: 16px; }
+.steps-list { padding-left: 1.4em; margin: 0; }
+.steps-list li { margin-bottom: 14px; }
+pre.cmd { position: relative; background: var(--ink); color: #e9ffe0; border-radius: 12px; padding: 12px 70px 12px 14px; margin: 8px 0; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+pre.cmd .copy-btn { position: absolute; top: 8px; right: 8px; padding: 2px 10px; font-size: 12px; box-shadow: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+:not(pre) > code { background: #fff3b0; padding: 1px 5px; border-radius: 6px; }
+.dl-list { display: grid; gap: 10px; justify-items: start; margin: 12px 0; }
+.dl-list .btn { white-space: normal; text-align: left; }
+.check-list { list-style: none; padding: 0; margin: 16px 0 8px; display: grid; gap: 8px; }
+.check-list li { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.check-list .dot { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--ink); background: #fff; flex: none; }
+.check-list li.running .dot { background: var(--yellow); animation: pulse 1s infinite; }
+.check-list li.ok .dot { background: var(--green); }
+.check-list li.fail .dot { background: var(--red); }
+.faq details { border-bottom: 2px dashed #ddd; padding: 10px 0; }
+.faq summary { font-weight: 900; cursor: pointer; }
+.faq details ul, .faq details p { margin: 8px 0 0; }
+.local-panel .field { margin-bottom: 10px; }
+
 /* ---------- Live page ---------- */
 body.live { min-height: 100vh; overflow: hidden; background: transparent; }
 body.live.bg-green { background: #00ff00; }

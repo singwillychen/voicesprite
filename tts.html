@@ -43,6 +43,21 @@
         <div class="ctl-block">
           <h2>語音引擎</h2>
           <div class="engine-list" id="engineList" role="radiogroup" aria-label="語音引擎"></div>
+          <div class="model-panel local-panel" id="localPanel" hidden>
+            <div class="model-head">
+              <strong>本地 GPT-SoVITS</strong>
+              <span class="small" id="localStatus">尚未測試連線</span>
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label class="field-label small" for="localUrl">橋接程式網址</label>
+              <input type="text" id="localUrl" spellcheck="false">
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-sm btn-yellow" id="btnLocalCheck">測試連線</button>
+              <a class="btn btn-sm btn-pink" href="local-setup.html">安裝與連線教學 →</a>
+            </div>
+            <p class="small muted" style="margin:10px 0 0">需要先在電腦上安裝 GPT-SoVITS，並在使用前執行 VoiceSprite 啟動檔。還沒安裝的話，請按「安裝與連線教學」。</p>
+          </div>
           <div class="model-panel" id="modelPanel" hidden>
             <div class="model-head">
               <strong>AI 模型（ZipVoice）</strong>
@@ -138,10 +153,10 @@
         <div>
           <p class="sticker">LIVE BOARD</p>
           <h2>直播台詞板</h2>
-          <p class="small muted" style="margin:0">把常用台詞先用引擎 B 生成好，直播時在直播模式頁按按鈕或數字鍵 1～9 立刻播放。沒生成的台詞會改用引擎 A 即時說。</p>
+          <p class="small muted" style="margin:0">把常用台詞先用 AI 引擎（目前選的引擎 B 或本地引擎）生成好，直播時在直播模式頁按按鈕或數字鍵 1～9 立刻播放。沒生成的台詞會改用引擎 A 即時說。</p>
         </div>
         <div class="btn-row">
-          <button type="button" class="btn btn-pink" id="btnBoardGen">全部預先生成（引擎 B）</button>
+          <button type="button" class="btn btn-pink" id="btnBoardGen">全部預先生成</button>
           <button type="button" class="btn btn-sm" id="btnClipsClear">清除已生成語音</button>
         </div>
       </div>
@@ -166,6 +181,7 @@
   <script src="js/board.js"></script>
   <script src="js/audio-player.js"></script>
   <script src="js/engines/engine-a-webspeech.js"></script>
+  <script src="js/engines/ref-tools.js"></script>
   <script src="js/engines/engine-b-zipvoice.js"></script>
   <script src="js/engines/engine-local.js"></script>
   <script src="js/tts.js"></script>

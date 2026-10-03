@@ -23,7 +23,9 @@
   - 生成比即時慢，適合先做成「直播台詞板」，直播時用按鈕或數字鍵 1～9 播放。
   - 僅支援電腦；手機與預覽框架會自動改用引擎 A。
   - 模型訓練資料含非商業授權條款，營利用途請先確認授權。
-- 本地開源引擎已預留介面，見 `js/engines/engine-local.js`。
+- 本地開源引擎（Beta，GPT-SoVITS）：使用者自行安裝 GPT-SoVITS，再執行 `tools/` 裡的橋接程式連到網站。安裝與連線教學見 `local-setup.html`。
+  - `tools/voicesprite-bridge.py`：橋接程式（只用 Python 內建功能），處理跨網域與參考錄音上傳
+  - `tools/start-gptsovits-windows.bat`、`tools/start-gptsovits-mac.command`：一鍵啟動 GPT-SoVITS 與橋接程式
 
 ## 聲線特徵檔格式（.voiceprofile.json）
 

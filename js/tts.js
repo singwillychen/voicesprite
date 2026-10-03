@@ -87,6 +87,8 @@
     $('#voiceField').hidden = !caps.systemVoices;
     $('#modelPanel').hidden = !caps.needsModel;
     if (caps.needsModel) updateModelPanel();
+    $('#localPanel').hidden = !caps.needsServer;
+    if (caps.needsServer && engineLocal && engineLocal.getStatus().state === 'unknown') engineLocal.check();
     updateReadout();
     renderBoard();
   }
@@ -133,6 +135,39 @@
       VS.toast('已清除模型');
     });
   }
+  /* ---------- 本地引擎（GPT-SoVITS）面板 ---------- */
+  const engineLocal = VS.engines.get('local');
+
+  function updateLocalPanel(s) {
+    const text = {
+      unknown: '尚未測試連線',
+      checking: '連線中…',
+      online: '✅ ' + (s.message || '已連線'),
+      'bridge-only': '⚠️ ' + s.message,
+      offline: '❌ ' + s.message
+    }[s.state] || '';
+    $('#localStatus').textContent = text;
+  }
+
+  // 本地引擎播放前先確認連線，沒連上就引導到教學頁
+  async function ensureServer() {
+    const s = engineLocal.getStatus().state === 'online' ? engineLocal.getStatus() : await engineLocal.check();
+    if (s.state === 'online') return true;
+    if (confirm(`${s.message}\n\n要打開「本地引擎安裝與連線教學」嗎？`)) location.href = 'local-setup.html#test';
+    return false;
+  }
+
+  if (engineLocal) {
+    $('#localUrl').value = engineLocal.bridgeUrl();
+    engineLocal.onStatus(updateLocalPanel);
+    $('#localUrl').addEventListener('change', e => {
+      engineLocal.setBridgeUrl(e.target.value);
+      e.target.value = engineLocal.bridgeUrl();
+      updateReadout();
+    });
+    $('#btnLocalCheck').addEventListener('click', () => engineLocal.check());
+  }
+
   $('#zvSteps').value = VS.prefs.get('zvSteps', '4');
   $('#zvSteps').addEventListener('change', e => { VS.prefs.set('zvSteps', e.target.value); updateReadout(); });
 
@@ -346,6 +381,7 @@
       return;
     }
     if (e.capabilities.needsModel && !(await ensureModel())) return;
+    if (e.capabilities.needsServer && !(await ensureServer())) return;
     setSpeaking(true);
     e.speak(text, state.profile, opts, playHooks(e)).catch(err => VS.toast('播放失敗：' + err.message, 'error'));
   }
@@ -374,6 +410,7 @@
       return;
     }
     if (e.capabilities.needsModel && !(await ensureModel())) return;
+    if (e.capabilities.needsServer && !(await ensureServer())) return;
     const btn = $('#btnDownload');
     btn.disabled = true;
     try {
@@ -400,11 +437,19 @@
   const emotionName = id => (VS.EMOTIONS.find(e => e.id === id) || VS.EMOTIONS[0]).name;
   const profileId = () => (state.profile ? state.profile.id : '');
 
+  // 台詞板用目前選的 AI 引擎生成（引擎 B 或本地引擎）；選引擎 A 時改用引擎 B
+  function boardEngine() {
+    const e = engine();
+    return e.capabilities.download ? e : engineB;
+  }
+
   function renderBoard() {
     const list = VS.board.list();
-    const canGen = !!engineB && engineB.isAvailable();
+    const ge = boardEngine();
+    const canGen = !!ge && ge.isAvailable();
     $('#btnBoardGen').disabled = state.boardBusy || !canGen || !list.length;
-    $('#btnBoardGen').title = canGen ? '' : (engineB ? engineB.unavailableReason() : '');
+    $('#btnBoardGen').textContent = ge && ge.id === 'local' ? '全部預先生成（本地引擎）' : '全部預先生成（引擎 B）';
+    $('#btnBoardGen').title = canGen ? '' : (ge ? ge.unavailableReason() : '');
     if (!list.length) {
       $('#boardList').innerHTML = '<li class="empty">還沒有台詞。在上方輸入文字、選好情緒後，按「＋ 加入台詞板」。</li>';
       return;
@@ -463,7 +508,9 @@
 
   $('#btnBoardGen').addEventListener('click', async () => {
     if (!state.profile) { VS.toast('請先選擇聲線特徵檔', 'error'); return; }
-    if (!(await ensureModel())) return;
+    const ge = boardEngine();
+    if (ge.capabilities.needsModel && !(await ensureModel())) return;
+    if (ge.capabilities.needsServer && !(await ensureServer())) return;
     const todo = VS.board.list().filter(p => !VS.board.isReady(p, profileId()));
     if (!todo.length) { VS.toast('全部台詞都已生成'); return; }
     state.boardBusy = true;
@@ -474,7 +521,7 @@
         const p = todo[i];
         const base = `生成第 ${i + 1} / ${todo.length} 句：「${p.text.slice(0, 16)}」`;
         $('#boardStatus').textContent = base;
-        const out = await engineB.synthesize(p.text, state.profile, options({ emotion: p.emotion }), {
+        const out = await ge.synthesize(p.text, state.profile, options({ emotion: p.emotion }), {
           onProgress: v => { $('#boardStatus').textContent = `${base} ${Math.round(v * 100)}%`; }
         });
         const key = 'board:' + p.id + ':' + state.profile.id;

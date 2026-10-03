@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本地引擎安裝｜VoiceSprite 聲線工坊</title>
+  <meta name="description" content="在自己的電腦安裝 GPT-SoVITS，並用 VoiceSprite 橋接程式連接網站。">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body data-page="local-setup">
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="index.html"><span>VS</span>VOICE SPRITE</a>
+      <nav class="site-nav" aria-label="主選單">
+        <a href="index.html" data-page="home">首頁</a>
+        <a href="record.html" data-page="record">錄製聲紋</a>
+        <a href="tts.html" data-page="tts">文字轉語音</a>
+        <a href="live.html" data-page="live">直播模式</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page">
+    <header class="page-head">
+      <p class="sticker sticker-pink">LOCAL ENGINE</p>
+      <h1>本地開源引擎安裝與連線</h1>
+      <p>在你自己的電腦安裝開源語音模型 GPT-SoVITS，再用 VoiceSprite 橋接程式連到網站。中文音色最接近本人，有 NVIDIA 顯示卡時速度接近即時。</p>
+    </header>
+
+    <section class="card setup-block">
+      <h2>運作方式</h2>
+      <div class="flow">
+        <div class="flow-box"><b>VoiceSprite 網站</b><span>送出文字＋你的參考錄音</span></div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-box"><b>橋接程式</b><span>你的電腦・port 9881</span></div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-box"><b>GPT-SoVITS</b><span>你的電腦・port 9880</span></div>
+      </div>
+      <p class="small muted" style="margin:14px 0 0">所有運算都在你的電腦上，聲音不會上傳到任何伺服器。只有開著啟動檔的那台電腦能使用本地引擎。</p>
+    </section>
+
+    <section class="card setup-block">
+      <h2>需要的設備</h2>
+      <table class="req-table">
+        <tbody>
+          <tr><th>最佳</th><td>Windows 10／11 ＋ NVIDIA 顯示卡（RTX 系列，顯示記憶體 6 GB 以上）：速度接近即時</td></tr>
+          <tr><th>可以用</th><td>Mac（Apple M 系列晶片）或沒有 NVIDIA 顯示卡的電腦：可以執行，但每句要等比較久</td></tr>
+          <tr><th>硬碟空間</th><td>Windows 約 25 GB（整合包約 8 GB，解壓後更大）；Mac 至少 15 GB</td></tr>
+          <tr><th>記憶體</th><td>建議 16 GB 以上</td></tr>
+          <tr><th>瀏覽器</th><td>電腦版 Chrome 或 Edge（Safari 可能擋下本機連線）</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card setup-block">
+      <h2>步驟一：安裝 GPT-SoVITS</h2>
+      <div class="seg os-tabs" role="tablist" aria-label="選擇作業系統">
+        <button type="button" class="chip" role="tab" data-os="win" aria-pressed="true">Windows</button>
+        <button type="button" class="chip" role="tab" data-os="mac" aria-pressed="false">macOS</button>
+      </div>
+
+      <div class="os-pane" data-os="win">
+        <ol class="steps-list">
+          <li>
+            <b>下載官方整合包</b>（已包含 Python 與所有套件，不用另外安裝）。<br>
+            到 <a href="https://huggingface.co/lj1995/GPT-SoVITS-windows-package/tree/main" target="_blank" rel="noopener">官方整合包下載區 ↗</a>，建議下載 <code>GPT-SoVITS-v2pro-20250604.7z</code>（約 8.2 GB）。顯示卡是 RTX 50 系列的話，改下載檔名有 <code>-nvidia50</code> 的版本。<br>
+            <span class="small muted">官方說明：<a href="https://github.com/RVC-Boss/GPT-SoVITS#windows" target="_blank" rel="noopener">GPT-SoVITS README 的 Windows 段落 ↗</a></span>
+          </li>
+          <li>
+            <b>解壓縮</b>：.7z 檔需要用 <a href="https://www.7-zip.org/" target="_blank" rel="noopener">7-Zip ↗</a>（免費）解壓。解壓到路徑<b>沒有中文、沒有空格</b>的資料夾，例如 <code>D:\GPT-SoVITS</code>。
+          </li>
+          <li>
+            <b>先試跑一次</b>：雙擊資料夾裡的 <code>go-webui.bat</code>，能打開 GPT-SoVITS 的網頁介面就代表安裝成功。確認後關掉它。
+          </li>
+        </ol>
+      </div>
+
+      <div class="os-pane" data-os="mac" hidden>
+        <p class="note" style="margin-top:0">Mac 沒有 NVIDIA 顯示卡，可以使用但生成較慢。以下指令都在「終端機」App 裡執行，每段貼上後按 Enter。</p>
+        <ol class="steps-list">
+          <li>
+            <b>安裝 Homebrew</b>（已安裝可跳過）：依照 <a href="https://brew.sh/zh-tw/" target="_blank" rel="noopener">brew.sh ↗</a> 的指令安裝。接著安裝 FFmpeg：
+            <pre class="cmd"><code>brew install ffmpeg</code></pre>
+          </li>
+          <li>
+            <b>安裝 Miniconda</b>（已安裝可跳過）：到 <a href="https://www.anaconda.com/docs/getting-started/miniconda/install" target="_blank" rel="noopener">Miniconda 下載頁 ↗</a> 選 macOS Apple Silicon 版本安裝，裝完重新打開終端機。
+          </li>
+          <li>
+            <b>下載 GPT-SoVITS</b>：
+            <pre class="cmd"><code>cd ~
+git clone https://github.com/RVC-Boss/GPT-SoVITS.git
+cd GPT-SoVITS</code></pre>
+          </li>
+          <li>
+            <b>建立環境並安裝</b>（會自動下載模型，需要一段時間）：
+            <pre class="cmd"><code>conda create -n GPTSoVits python=3.10 -y
+conda activate GPTSoVits
+bash install.sh --device MPS --source HF</code></pre>
+            <span class="small muted">如果安裝 MPS 版本失敗，可以把 <code>MPS</code> 改成 <code>CPU</code> 再試一次。</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="card setup-block">
+      <h2>步驟二：放入 VoiceSprite 連接檔</h2>
+      <p>下載以下兩個檔案，放進 GPT-SoVITS 資料夾裡<b>有 <code>api_v2.py</code> 的那一層</b>。</p>
+      <div class="dl-list">
+        <a class="btn btn-yellow" href="tools/voicesprite-bridge.py" download>⬇ voicesprite-bridge.py（橋接程式，兩種系統都要）</a>
+        <a class="btn" href="tools/start-gptsovits-windows.bat" download data-os-only="win">⬇ start-gptsovits-windows.bat（Windows 啟動檔）</a>
+        <a class="btn" href="tools/start-gptsovits-mac.command" download data-os-only="mac">⬇ start-gptsovits-mac.command（Mac 啟動檔）</a>
+      </div>
+      <p class="small muted">Chrome 下載 .bat 或 .command 時可能提醒「這類檔案可能有害」，請選「保留」。這兩個檔案只是啟動 GPT-SoVITS 與橋接程式，內容可以用記事本打開確認。</p>
+    </section>
+
+    <section class="card setup-block">
+      <h2>步驟三：啟動</h2>
+      <div class="os-pane" data-os="win">
+        <p>雙擊 <code>start-gptsovits-windows.bat</code>。黑色視窗出現「VoiceSprite 橋接程式」與「網站連線位址」字樣就代表啟動了。第一次載入模型需要等一下。</p>
+      </div>
+      <div class="os-pane" data-os="mac" hidden>
+        <p>打開終端機，執行：</p>
+        <pre class="cmd"><code>cd ~/GPT-SoVITS
+bash start-gptsovits-mac.command</code></pre>
+        <p>出現「VoiceSprite 橋接程式」與「網站連線位址」字樣就代表啟動了。第一次載入模型需要等一下。</p>
+      </div>
+      <p class="note">要關閉時，直接關掉那個視窗（或按 Ctrl + C），GPT-SoVITS 和橋接程式會一起關閉。重新開機後不會自動啟動，下次使用前再執行一次即可。</p>
+    </section>
+
+    <section class="card setup-block" id="test">
+      <h2>步驟四：測試連線</h2>
+      <div class="field">
+        <label class="field-label" for="bridgeUrl">橋接程式網址 <span class="small muted">（一般不用改）</span></label>
+        <input type="text" id="bridgeUrl" spellcheck="false">
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-pink" id="btnCheck">測試連線</button>
+        <button type="button" class="btn" id="btnTestGen" disabled>試著生成一句</button>
+      </div>
+      <ul class="check-list" id="checkList">
+        <li data-step="bridge"><span class="dot"></span>橋接程式</li>
+        <li data-step="sovits"><span class="dot"></span>GPT-SoVITS</li>
+        <li data-step="gen"><span class="dot"></span>用你的聲線生成一句</li>
+      </ul>
+      <p id="checkMsg" aria-live="polite"></p>
+      <div class="btn-row" id="doneRow" hidden>
+        <a class="btn btn-pink" href="tts.html">完成！到文字轉語音頁使用 →</a>
+      </div>
+      <p class="small muted">Chrome 第一次連線時可能詢問「允許這個網站存取本機網路上的裝置」，請按<b>允許</b>。</p>
+    </section>
+
+    <section class="card setup-block">
+      <h2>之後每次使用</h2>
+      <ol class="steps-list">
+        <li>直播或錄音前，先啟動 GPT-SoVITS（步驟三）。</li>
+        <li>到「文字轉語音」頁，語音引擎選「本地開源引擎：GPT-SoVITS」，選好聲線特徵檔就能播放、下載 WAV、生成直播台詞板。</li>
+        <li>用完關掉視窗即可。</li>
+      </ol>
+    </section>
+
+    <section class="card setup-block faq">
+      <h2>常見問題</h2>
+      <details>
+        <summary>測試連線顯示「連不到橋接程式」</summary>
+        <ul>
+          <li>確認啟動檔的視窗還開著，而且有出現「網站連線位址」。</li>
+          <li>Chrome 詢問存取本機網路時要按允許；不小心拒絕的話，點網址列左邊的圖示重新允許。</li>
+          <li>請用 Chrome 或 Edge，Safari 可能會擋下網站連到本機。</li>
+          <li>如果 9881 被其他程式占用，可以用 <code>python voicesprite-bridge.py --port 9882</code> 啟動，並把上面的網址改成 <code>http://127.0.0.1:9882</code>。</li>
+        </ul>
+      </details>
+      <details>
+        <summary>橋接程式已啟動，但連不到 GPT-SoVITS</summary>
+        <ul>
+          <li>GPT-SoVITS 第一次載入模型需要 1～2 分鐘，等視窗不再跑新訊息後再測試一次。</li>
+          <li>如果視窗出現紅色錯誤訊息，通常是安裝不完整：Windows 請重新解壓整合包；Mac 請重新執行步驟一的 install.sh。</li>
+        </ul>
+      </details>
+      <details>
+        <summary>生成失敗，出現「參考音頻在 3～10 秒範圍外」</summary>
+        <p>網站會自動把太短的參考錄音補到 3 秒以上。如果仍然出現，請到「錄製聲紋」重錄一次，每句用正常語速完整唸完。</p>
+      </details>
+      <details>
+        <summary>想讓聲音更像自己</summary>
+        <p>GPT-SoVITS 可以用 1 分鐘以上的錄音微調模型，相似度會大幅提升。請參考 <a href="https://github.com/RVC-Boss/GPT-SoVITS" target="_blank" rel="noopener">官方說明 ↗</a> 的訓練教學，訓練完成後在 <code>GPT_SoVITS/configs/tts_infer.yaml</code> 指定你的模型。</p>
+      </details>
+      <details>
+        <summary>可以開機就自動啟動嗎？</summary>
+        <p>可以，但不建議：GPT-SoVITS 開著會一直占用顯示卡記憶體與系統資源。真的需要的話，Windows 可把啟動檔的捷徑放進「啟動」資料夾（按 Win + R 輸入 <code>shell:startup</code>）。</p>
+      </details>
+      <details>
+        <summary>安全嗎？</summary>
+        <p>橋接程式只接受同一台電腦的連線，而且只允許 VoiceSprite 網站使用，其他網站會被拒絕。參考錄音只會暫存在電腦的暫存資料夾。</p>
+      </details>
+      <details>
+        <summary>可以用在營利直播嗎？</summary>
+        <p>GPT-SoVITS 程式採用 MIT 授權。預訓練模型與你使用的聲音的授權，請自行確認；請只使用本人或已取得同意者的聲音。</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container inner">
+      <a class="logo" href="index.html"><span>VS</span>VOICE SPRITE</a>
+      <p>所有錄音與特徵檔只存在你的瀏覽器，不會上傳。請只錄製本人或已取得同意者的聲音。</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/audio-utils.js"></script>
+  <script src="js/profile-store.js"></script>
+  <script src="js/clip-store.js"></script>
+  <script src="js/audio-player.js"></script>
+  <script src="js/engines/engine-a-webspeech.js"></script>
+  <script src="js/engines/ref-tools.js"></script>
+  <script src="js/engines/engine-local.js"></script>
+  <script src="js/local-setup.js"></script>
+  <script>
+  /* 檔案不完整時（例如直接在壓縮檔裡打開、只傳了 html），顯示說明而不是空白頁 */
+  (function () {
+    var cssOk = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() !== '';
+    var jsOk = !!(window.VS && window.VS.engines);
+    if (cssOk && jsOk) return;
+    var d = document.createElement('div');
+    d.setAttribute('role', 'alert');
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fffbe0;color:#141414;font:16px/1.8 system-ui,sans-serif;padding:24px;overflow:auto';
+    d.innerHTML = '<div style="max-width:640px;margin:0 auto">' +
+      '<h1 style="font-size:24px;margin:0 0 12px">網站檔案不完整，無法正常顯示</h1>' +
+      '<p>這個網頁需要和 <b>css</b>、<b>js</b>、<b>images</b> 三個資料夾放在一起才能運作，目前讀不到它們。</p>' +
+      '<ol>' +
+      '<li>如果收到的是壓縮檔（.zip），請先按右鍵「<b>全部解壓縮</b>」，再打開解壓後資料夾裡的 index.html。不要直接在壓縮檔裡點開。</li>' +
+      '<li>確認 index.html 旁邊有 css、js、images 三個資料夾。用 LINE 等通訊軟體傳檔時，資料夾常會不見，請改傳整個壓縮檔。</li>' +
+      '<li><b>最推薦</b>：請對方直接打開網站的 GitHub Pages 網址。錄製聲紋也只有網址版能使用麥克風。</li>' +
+      '</ol></div>';
+    document.body.appendChild(d);
+  })();
+  </script>
+</body>
+</html>
