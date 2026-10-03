@@ -41,8 +41,10 @@
         NotAllowedError: '麥克風權限被拒絕。請點網址列旁的權限圖示，允許使用麥克風後重新整理。',
         NotFoundError: '找不到麥克風，請確認裝置已連接。',
         NotReadableError: '麥克風正被其他程式使用，請先關閉其他錄音程式。',
-        NotSupportedError: '這個瀏覽器不支援錄音，請改用最新版 Chrome、Edge 或 Safari。'
-      }[e.name] || ('無法開啟麥克風：' + e.message);
+        NotSupportedError: '這個瀏覽器不支援錄音，請改用最新版 Chrome、Edge 或 Safari。',
+        // 被包在預覽平台的框架裡、或 App 內建瀏覽器（LINE、Messenger 等）時常見
+        SecurityError: `目前的開啟方式不允許使用麥克風。請直接用電腦版 Chrome 打開正式網址：${VS.SITE_URL}record.html（不要在預覽平台或通訊軟體內建的瀏覽器裡開）。`
+      }[e.name] || ('無法開啟麥克風：' + e.message + `（建議改用電腦版 Chrome 打開 ${VS.SITE_URL}record.html）`);
       err.textContent = msg;
       err.hidden = false;
       return;
