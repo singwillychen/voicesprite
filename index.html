@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceSprite 聲線工坊</title>
+  <meta name="description" content="朗讀 5 句台詞建立你的聲線特徵檔，選一個動漫角色，輸入文字就能讓角色用接近你的聲線說話，還能帶進直播。">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="index.html"><span>VS</span>VOICE SPRITE</a>
+      <nav class="site-nav" aria-label="主選單">
+        <a href="index.html" data-page="home">首頁</a>
+        <a href="record.html" data-page="record">錄製聲紋</a>
+        <a href="tts.html" data-page="tts">文字轉語音</a>
+        <a href="live.html" data-page="live">直播模式</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="sticker sticker-pink">BETA ・ 全部在你的瀏覽器裡運作</p>
+          <h1 class="hero-title">
+            <span class="en">VOICE<br>SPRITE!</span>
+            <span class="zh">用你的聲線<br>讓角色開口說話</span>
+          </h1>
+          <p class="lead">朗讀 5 句台詞，建立專屬的聲線特徵檔。挑一個動漫角色、輸入文字、調整情緒，角色就會依照你的聲線說話，還能直接帶進直播。</p>
+          <div class="btn-row">
+            <a class="btn btn-pink btn-lg" href="record.html">開始錄製聲紋 →</a>
+            <a class="btn btn-lg" href="#characters">先挑角色</a>
+          </div>
+        </div>
+        <div class="hero-stage">
+          <div class="burst" id="heroBurst"></div>
+          <div class="hero-char" id="heroChar" title="點我說話"></div>
+          <div class="speech-bubble" id="heroBubble">嗨！</div>
+          <button class="btn btn-yellow" id="heroHello" type="button">聽我說話 ▶</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>VOICE PROFILE</span><span class="star">★</span><span>聲線特徵檔</span><span class="star">★</span><span>TEXT TO SPEECH</span><span class="star">★</span><span>直播模式</span><span class="star">★</span><span>ANIME CHARACTERS</span><span class="star">★</span><span>情緒調整</span><span class="star">★</span>
+        <span>VOICE PROFILE</span><span class="star">★</span><span>聲線特徵檔</span><span class="star">★</span><span>TEXT TO SPEECH</span><span class="star">★</span><span>直播模式</span><span class="star">★</span><span>ANIME CHARACTERS</span><span class="star">★</span><span>情緒調整</span><span class="star">★</span>
+      </div>
+    </div>
+
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="sticker">HOW IT WORKS</p>
+          <h2>三步驟，角色就會說話</h2>
+        </div>
+        <div class="steps">
+          <article class="card step reveal">
+            <div class="step-no">1</div>
+            <h3>錄製聲紋</h3>
+            <p>跟著畫面朗讀 5 句不同情緒的台詞，大約 1 分鐘。每句錄完會馬上檢查音量與雜音。</p>
+          </article>
+          <article class="card step reveal">
+            <div class="step-no">2</div>
+            <h3>產生特徵檔</h3>
+            <p>分析你的音高、音色、語速與起伏，存成聲線特徵檔，可以匯出成 .json 帶到別台電腦或直播軟體。</p>
+          </article>
+          <article class="card step reveal">
+            <div class="step-no">3</div>
+            <h3>角色開口說話</h3>
+            <p>選角色、輸入文字，調整語速、語氣、情緒。也能開啟直播模式，讓角色和字幕出現在 OBS 畫面上。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="characters">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="sticker sticker-white">5 STYLES × 2</p>
+          <h2>選擇你的角色</h2>
+          <p>點角色卡片選擇，按「試聽」聽聽看。選好的角色會用在文字轉語音和直播模式。</p>
+        </div>
+        <div class="filters" id="styleFilters" role="group" aria-label="依風格篩選"></div>
+        <div class="filters" id="genderFilters" role="group" aria-label="依性別篩選"></div>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="card selected-bar reveal">
+          <div>目前角色：<strong id="selectedName">—</strong></div>
+          <div class="btn-row">
+            <a class="btn btn-pink" href="tts.html">用這個角色說話 →</a>
+            <a class="btn" href="live.html" target="_blank" rel="noopener">開啟直播模式</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="live-guide">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="sticker">FOR STREAMERS</p>
+          <h2>帶進直播的方法</h2>
+          <p>直播模式頁只顯示角色和字幕，背景可切換成綠幕或透明，方便在 OBS 去背。</p>
+        </div>
+        <div class="guide-grid">
+          <article class="card reveal">
+            <h3>畫面：視窗擷取 + 綠幕（推薦）</h3>
+            <ol>
+              <li>在瀏覽器開啟「文字轉語音」頁，勾選「同步到直播模式頁」。</li>
+              <li>再開一個視窗開啟「直播模式」頁，背景選「綠幕」，按 H 隱藏控制面板。</li>
+              <li>在 OBS 新增「視窗擷取」，選擇直播模式頁的視窗。</li>
+              <li>對該來源加上「色度鍵」濾鏡，把綠色去掉。</li>
+            </ol>
+            <p class="note">OBS 的「瀏覽器來源」和你的瀏覽器是分開的程式，無法接收同步訊號，所以建議用視窗擷取。</p>
+          </article>
+          <article class="card reveal">
+            <h3>聲音：把語音送進 OBS</h3>
+            <ol>
+              <li>最簡單：在 OBS 開啟「桌面音訊」，語音會跟著電腦聲音一起進直播。</li>
+              <li>想單獨控制音量：安裝虛擬音訊裝置（Windows 用 VB-Cable，Mac 用 BlackHole），把系統輸出切到虛擬裝置，再在 OBS 加入該裝置當音訊來源。</li>
+              <li>聲線特徵檔可在「錄製聲紋」頁匯出成 .json，在其他電腦匯入後直接使用。</li>
+            </ol>
+            <p class="note">目前的引擎 A 由作業系統播放語音，所以要用上面的方法收音，暫時無法下載成音檔。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="engines">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="sticker sticker-pink">ROADMAP</p>
+          <h2>語音引擎</h2>
+          <p>同一個聲線特徵檔可以在所有引擎使用。特徵檔裡已經保存了參考錄音，之後換成更強的引擎時不用重錄。</p>
+        </div>
+        <div class="engine-cards">
+          <article class="card engine-card reveal">
+            <span class="tag tag-ready">現在可用</span>
+            <h3>引擎 A：瀏覽器內建語音</h3>
+            <p>依你的音高與語速挑選並調整系統語音。免下載、可離線，但音色只是近似。</p>
+          </article>
+          <article class="card engine-card reveal">
+            <span class="tag tag-soon">即將推出</span>
+            <h3>引擎 B：瀏覽器 AI 模型</h3>
+            <p>在瀏覽器裡執行開源模型，用你的參考錄音複製音色，可下載音檔。首次使用需下載模型。</p>
+          </article>
+          <article class="card engine-card reveal">
+            <span class="tag tag-soon">即將推出</span>
+            <h3>本地開源引擎</h3>
+            <p>連到你電腦上執行的 GPT-SoVITS、CosyVoice 等開源模型，中文音色最接近本人。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container inner">
+      <a class="logo" href="index.html"><span>VS</span>VOICE SPRITE</a>
+      <p>所有錄音與特徵檔只存在你的瀏覽器，不會上傳。請只錄製本人或已取得同意者的聲音。</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/profile-store.js"></script>
+  <script src="js/engines/engine-a-webspeech.js"></script>
+  <script src="js/engines/engine-b-transformers.js"></script>
+  <script src="js/engines/engine-local.js"></script>
+  <script src="js/index.js"></script>
+  <script>
+  /* 檔案不完整時（例如直接在壓縮檔裡打開、只傳了 html），顯示說明而不是空白頁 */
+  (function () {
+    var cssOk = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() !== '';
+    var jsOk = !!(window.VS && window.VS.engines);
+    if (cssOk && jsOk) return;
+    var d = document.createElement('div');
+    d.setAttribute('role', 'alert');
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fffbe0;color:#141414;font:16px/1.8 system-ui,sans-serif;padding:24px;overflow:auto';
+    d.innerHTML = '<div style="max-width:640px;margin:0 auto">' +
+      '<h1 style="font-size:24px;margin:0 0 12px">網站檔案不完整，無法正常顯示</h1>' +
+      '<p>這個網頁需要和 <b>css</b>、<b>js</b>、<b>images</b> 三個資料夾放在一起才能運作，目前讀不到它們。</p>' +
+      '<ol>' +
+      '<li>如果收到的是壓縮檔（.zip），請先按右鍵「<b>全部解壓縮</b>」，再打開解壓後資料夾裡的 index.html。不要直接在壓縮檔裡點開。</li>' +
+      '<li>確認 index.html 旁邊有 css、js、images 三個資料夾。用 LINE 等通訊軟體傳檔時，資料夾常會不見，請改傳整個壓縮檔。</li>' +
+      '<li><b>最推薦</b>：請對方直接打開網站的 GitHub Pages 網址。錄製聲紋也只有網址版能使用麥克風。</li>' +
+      '</ol></div>';
+    document.body.appendChild(d);
+  })();
+  </script>
+</body>
+</html>

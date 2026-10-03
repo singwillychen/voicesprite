@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>直播模式｜VoiceSprite 聲線工坊</title>
+  <meta name="description" content="只顯示角色與字幕的直播畫面，可切換綠幕或透明背景。">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="live bg-green" data-page="live">
+  <div class="live-stage">
+    <div class="live-char" id="liveChar"></div>
+  </div>
+  <div class="live-sub" id="liveSub" aria-live="polite"></div>
+
+  <button type="button" class="btn btn-sm btn-yellow live-toggle" id="toggleControls" aria-expanded="true" aria-controls="controls">控制面板（H）</button>
+
+  <aside class="card live-controls" id="controls">
+    <h2>直播模式</h2>
+    <p class="sync-status" id="syncStatus">等待文字轉語音頁的同步訊號…</p>
+
+    <div class="field">
+      <label class="field-label" for="ctlChar">角色</label>
+      <select id="ctlChar"></select>
+    </div>
+    <div class="field">
+      <label class="field-label" for="ctlBg">背景</label>
+      <select id="ctlBg">
+        <option value="green">綠幕（色度鍵去背）</option>
+        <option value="blue">藍幕</option>
+        <option value="transparent">透明（OBS 瀏覽器來源）</option>
+        <option value="pop">普普風黃色</option>
+      </select>
+    </div>
+    <label class="check" style="margin-bottom:18px">
+      <input type="checkbox" id="ctlSub" checked>
+      <span>顯示字幕</span>
+    </label>
+
+    <div class="field">
+      <label class="field-label" for="ctlText">直接在這裡說話</label>
+      <input type="text" id="ctlText" maxlength="200" placeholder="輸入文字後按 Enter">
+    </div>
+    <div class="field">
+      <label class="field-label" for="ctlEmotion">情緒</label>
+      <select id="ctlEmotion"></select>
+    </div>
+    <div class="btn-row" style="margin-bottom:16px">
+      <button type="button" class="btn btn-pink btn-sm" id="ctlSpeak">▶ 說話</button>
+      <button type="button" class="btn btn-sm" id="ctlStop">■ 停止</button>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-sm btn-cyan" id="ctlCopy">複製直播用網址</button>
+      <a class="btn btn-sm" href="index.html#live-guide">設定教學</a>
+    </div>
+    <p class="small muted" style="margin:12px 0 0">按 H 可隱藏或顯示這個面板。網址加上 <code>?controls=0</code> 會直接隱藏。</p>
+  </aside>
+
+  <script src="js/app.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/profile-store.js"></script>
+  <script src="js/engines/engine-a-webspeech.js"></script>
+  <script src="js/live.js"></script>
+  <script>
+  /* 檔案不完整時（例如直接在壓縮檔裡打開、只傳了 html），顯示說明而不是空白頁 */
+  (function () {
+    var cssOk = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() !== '';
+    var jsOk = !!(window.VS && window.VS.engines);
+    if (cssOk && jsOk) return;
+    var d = document.createElement('div');
+    d.setAttribute('role', 'alert');
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fffbe0;color:#141414;font:16px/1.8 system-ui,sans-serif;padding:24px;overflow:auto';
+    d.innerHTML = '<div style="max-width:640px;margin:0 auto">' +
+      '<h1 style="font-size:24px;margin:0 0 12px">網站檔案不完整，無法正常顯示</h1>' +
+      '<p>這個網頁需要和 <b>css</b>、<b>js</b>、<b>images</b> 三個資料夾放在一起才能運作，目前讀不到它們。</p>' +
+      '<ol>' +
+      '<li>如果收到的是壓縮檔（.zip），請先按右鍵「<b>全部解壓縮</b>」，再打開解壓後資料夾裡的 index.html。不要直接在壓縮檔裡點開。</li>' +
+      '<li>確認 index.html 旁邊有 css、js、images 三個資料夾。用 LINE 等通訊軟體傳檔時，資料夾常會不見，請改傳整個壓縮檔。</li>' +
+      '<li><b>最推薦</b>：請對方直接打開網站的 GitHub Pages 網址。錄製聲紋也只有網址版能使用麥克風。</li>' +
+      '</ol></div>';
+    document.body.appendChild(d);
+  })();
+  </script>
+</body>
+</html>
