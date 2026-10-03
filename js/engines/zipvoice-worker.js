@@ -17,6 +17,15 @@ const FILES = {
 };
 
 let tts = null;
+let lang = 'zh';
+const EN = {
+  '下載 {label} 失敗（HTTP {status}）': 'Failed to download {label} (HTTP {status})',
+  '瀏覽器儲存空間不足，模型無法快取，下次需要重新下載。': 'Not enough browser storage to cache the model; it will be downloaded again next time.',
+  '模型初始化失敗：': 'Model initialization failed: ',
+  '模型尚未載入完成': 'The model has not finished loading',
+  '語音生成失敗：': 'Speech generation failed: '
+};
+const t = (s, vars) => (lang === 'en' && EN[s] ? EN[s] : s).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m));
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 
@@ -37,7 +46,7 @@ async function fetchCached(url, label, onProgress) {
     }
   }
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`下載 ${label} 失敗（HTTP ${res.status}）`);
+  if (!res.ok) throw new Error(t('下載 {label} 失敗（HTTP {status}）', { label, status: res.status }));
   const total = Number(res.headers.get('content-length')) || 0;
   const reader = res.body.getReader();
   const chunks = [];
@@ -56,7 +65,7 @@ async function fetchCached(url, label, onProgress) {
     try {
       await cache.put(url, new Response(buf.slice(0).buffer, { headers: { 'content-type': 'application/octet-stream' } }));
     } catch (e) {
-      post({ type: 'warn', message: '瀏覽器儲存空間不足，模型無法快取，下次需要重新下載。' });
+      post({ type: 'warn', message: t('瀏覽器儲存空間不足，模型無法快取，下次需要重新下載。') });
     }
   }
   return buf.buffer;
@@ -94,7 +103,7 @@ async function init(base) {
             loadMs: Math.round(performance.now() - t0)
           });
         } catch (err) {
-          post({ type: 'error', stage: 'init', message: '模型初始化失敗：' + errorMessage(err) });
+          post({ type: 'error', stage: 'init', message: t('模型初始化失敗：') + errorMessage(err) });
         }
       }
     };
@@ -113,7 +122,7 @@ async function init(base) {
 
 function generate(m) {
   if (!tts) {
-    post({ type: 'error', id: m.id, stage: 'generate', message: '模型尚未載入完成' });
+    post({ type: 'error', id: m.id, stage: 'generate', message: t('模型尚未載入完成') });
     return;
   }
   const t0 = performance.now();
@@ -139,12 +148,12 @@ function generate(m) {
       ms: Math.round(performance.now() - t0)
     }, [samples.buffer]);
   } catch (err) {
-    post({ type: 'error', id: m.id, stage: 'generate', message: '語音生成失敗：' + errorMessage(err) });
+    post({ type: 'error', id: m.id, stage: 'generate', message: t('語音生成失敗：') + errorMessage(err) });
   }
 }
 
 self.onmessage = e => {
   const m = e.data;
-  if (m.type === 'init') init(m.base);
+  if (m.type === 'init') { lang = m.lang || 'zh'; init(m.base); }
   else if (m.type === 'generate') generate(m);
 };

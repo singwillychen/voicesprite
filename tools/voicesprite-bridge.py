@@ -223,16 +223,16 @@ def main():
     os.makedirs(server.ref_dir, exist_ok=True)
 
     log("=" * 52)
-    log(f" VoiceSprite 橋接程式 v{VERSION}")
-    log(f" 網站連線位址：http://127.0.0.1:{args.port}")
-    log(f" GPT-SoVITS：{server.sovits_url}")
-    log(f" 允許的網站：{', '.join(sorted(server.allowed_origins))}（以及本機）")
-    log(" 關閉方式：關掉這個視窗，或按 Ctrl + C")
+    log(f" VoiceSprite 橋接程式 / VoiceSprite Bridge v{VERSION}")
+    log(f" 網站連線位址 / Bridge address: http://127.0.0.1:{args.port}")
+    log(f" GPT-SoVITS: {server.sovits_url}")
+    log(f" 允許的網站 / Allowed sites: {', '.join(sorted(server.allowed_origins))} (+ localhost)")
+    log(" 關閉方式：關掉這個視窗，或按 Ctrl + C / To stop: close this window or press Ctrl + C")
     log("=" * 52)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        log("\n已關閉橋接程式。")
+        log("\n已關閉橋接程式。 / Bridge stopped.")
 
 
 if __name__ == "__main__":

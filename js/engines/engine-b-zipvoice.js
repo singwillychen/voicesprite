@@ -28,13 +28,13 @@
   }
 
   function unavailableReason() {
-    if (VS.isSandboxPreview) return '預覽模式無法使用';
-    if (typeof WebAssembly !== 'object' || typeof Worker === 'undefined' || !('caches' in window)) return '此瀏覽器不支援';
+    if (VS.isSandboxPreview) return VS.t('預覽模式無法使用');
+    if (typeof WebAssembly !== 'object' || typeof Worker === 'undefined' || !('caches' in window)) return VS.t('此瀏覽器不支援');
     const mobile = (navigator.userAgentData && navigator.userAgentData.mobile) ||
       /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-    if (mobile) return '手機暫不支援（需要大量記憶體）';
-    if (navigator.deviceMemory && navigator.deviceMemory < 4) return '裝置記憶體不足';
-    if (!player) return '缺少播放器';
+    if (mobile) return VS.t('手機暫不支援（需要大量記憶體）');
+    if (navigator.deviceMemory && navigator.deviceMemory < 4) return VS.t('裝置記憶體不足');
+    if (!player) return VS.t('缺少播放器');
     return '';
   }
 
@@ -77,7 +77,7 @@
     if (worker) worker.terminate();
     worker = null;
     loadPromise = null;
-    pending.forEach(p => p.reject(new Error('模型已卸載')));
+    pending.forEach(p => p.reject(new Error(VS.t('模型已卸載'))));
     pending.clear();
   }
 
@@ -93,12 +93,12 @@
     try {
       worker = new Worker('js/engines/zipvoice-worker.js?v=' + VS.VERSION);
     } catch (e) {
-      fail('無法啟動背景執行緒：' + e.message);
+      fail(VS.t('無法啟動背景執行緒：') + e.message);
       return promise;
     }
     worker.onmessage = onMessage;
-    worker.onerror = e => fail('背景執行緒錯誤：' + (e.message || '未知錯誤'));
-    worker.postMessage({ type: 'init', base: BASE });
+    worker.onerror = e => fail(VS.t('背景執行緒錯誤：') + (e.message || VS.t('未知錯誤')));
+    worker.postMessage({ type: 'init', base: BASE, lang: VS.lang });
     return promise;
   }
 
@@ -160,7 +160,7 @@
   async function synthesize(text, profile, opts, cb) {
     opts = opts || {};
     cb = cb || {};
-    RT.requireProfile(profile, '引擎 B ');
+    RT.requireProfile(profile, VS.t('引擎 B '));
     const pick = RT.pickReference(profile, opts);
     const set = settings(opts);
     const chunks = RT.chunkText(text);
@@ -183,33 +183,33 @@
     opts = opts || {};
     hooks = hooks || {};
     stop();
-    try { RT.requireProfile(profile, '引擎 B '); } catch (e) { return Promise.reject(e); }
+    try { RT.requireProfile(profile, VS.t('引擎 B ')); } catch (e) { return Promise.reject(e); }
     const pick = RT.pickReference(profile, opts);
     const set = settings(opts);
     const chunks = RT.chunkText(text);
     return speaker.speak(chunks, (i, onProgress) => synthChunk(chunks[i], profile, pick, set, onProgress), opts, hooks,
-      i => (i > 0 ? 'AI 生成下一句中…' : status.state === 'ready' ? 'AI 生成中…' : '載入 AI 模型中…'));
+      i => VS.t(i > 0 ? 'AI 生成下一句中…' : status.state === 'ready' ? 'AI 生成中…' : '載入 AI 模型中…'));
   }
 
   function describe(profile, opts) {
     opts = opts || {};
     if (!RT.hasReferences(profile)) {
-      return { summary: '引擎 B 需要聲線特徵檔，請先選擇或錄製聲紋' };
+      return { summary: VS.t('引擎 B 需要聲線特徵檔，請先選擇或錄製聲紋') };
     }
     const pick = RT.pickReference(profile, opts);
     const set = settings(opts);
-    const old = (pick.r.sampleRate || 16000) < 24000 ? '・舊版 16 kHz，建議重錄' : '';
+    const old = (pick.r.sampleRate || 16000) < 24000 ? VS.t('・舊版 16 kHz，建議重錄') : '';
     return {
-      summary: `參考錄音：${pick.r.emotion}（${pick.r.durationSec} 秒${old}）｜語速 ×${set.speed.toFixed(2)}｜品質 ${set.steps} 步`
+      summary: VS.t('參考錄音：{emotion}（{sec} 秒{old}）｜語速 ×{speed}｜品質 {steps} 步', { emotion: VS.t(pick.r.emotion), sec: pick.r.durationSec, old, speed: set.speed.toFixed(2), steps: set.steps })
     };
   }
 
   VS.engines.register({
     id: 'zipvoice',
-    name: '引擎 B：AI 音色複製',
+    name: VS.t('引擎 B：AI 音色複製'),
     short: 'B',
     status: 'beta',
-    description: '在瀏覽器內用你的錄音複製音色。首次需下載約 210 MB 模型；生成比即時慢，適合先生成再播放。',
+    description: VS.t('在瀏覽器內用你的錄音複製音色。首次需下載約 210 MB 模型；生成比即時慢，適合先生成再播放。'),
     capabilities: {
       download: true, cloneTimbre: true, needsServer: false, needsModel: true, needsProfile: true,
       realtime: false, emotion: 'reference', pitch: false, systemVoices: false, lipsync: 'level'

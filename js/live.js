@@ -48,7 +48,7 @@
   /* ---------- 控制面板 ---------- */
   $('#ctlChar').innerHTML = C.STYLES.map(s => `<optgroup label="${s.name}">` +
     C.CHARS.filter(c => c.style === s.id)
-      .map(c => `<option value="${c.id}">${c.name}（${c.gender === 'f' ? '女' : '男'}）</option>`).join('') +
+      .map(c => `<option value="${c.id}">${VS.t('{name}（{gender}）', { name: c.name, gender: C.genderLabel(c) })}</option>`).join('') +
     '</optgroup>').join('');
   $('#ctlEmotion').innerHTML = VS.EMOTIONS.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
 
@@ -86,6 +86,14 @@
     applyBody();
   }
   $('#toggleControls').addEventListener('click', toggleControls);
+
+  // 返回：從本站其他頁進來就回上一頁，否則（例如直接開網址）回文字轉語音頁
+  $('#btnBack').addEventListener('click', () => {
+    let sameSite = false;
+    try { sameSite = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) { /* 忽略 */ }
+    if (sameSite && history.length > 1) history.back();
+    else location.href = 'tts.html';
+  });
   document.addEventListener('keydown', e => {
     if (e.target.matches && e.target.matches('input, select, textarea')) return;
     if (e.key === 'h' || e.key === 'H') toggleControls();
@@ -96,9 +104,9 @@
     const url = `${base}?char=${state.charId}&bg=${state.bg}&sub=${state.sub ? 1 : 0}&controls=0`;
     try {
       await navigator.clipboard.writeText(url);
-      VS.toast('已複製直播用網址');
+      VS.toast(VS.t('已複製直播用網址'));
     } catch (e) {
-      prompt('請手動複製這個網址', url);
+      prompt(VS.t('請手動複製這個網址'), url);
     }
   });
 
@@ -107,7 +115,7 @@
     const text = $('#ctlText').value.trim();
     if (!text) return;
     const engine = VS.engines.get('webspeech');
-    if (!engine.isAvailable()) { VS.toast('這個瀏覽器不支援語音合成', 'error'); return; }
+    if (!engine.isAvailable()) { VS.toast(VS.t('這個瀏覽器不支援語音合成'), 'error'); return; }
     const c = C.get(state.charId);
     const [, profile] = await Promise.all([engine.loadVoices(), VS.profileStore.getSelected().catch(() => null)]);
     engine.speak(text, profile, {
@@ -122,7 +130,7 @@
       onSentence: s => { setSub(s); talker.start(); },
       onPause: () => talker.stop(),
       onEnd: () => { talker.stop(); clearSubLater(); }
-    }).catch(err => VS.toast('播放失敗：' + err.message, 'error'));
+    }).catch(err => VS.toast(VS.t('播放失敗：') + err.message, 'error'));
     $('#ctlText').value = '';
   }
 
@@ -148,9 +156,9 @@
         const ready = VS.board.isReady(p, profileId);
         return `<button type="button" data-id="${p.id}" title="${VS.escapeHtml(p.text)}">
           <span class="k">${i < 9 ? i + 1 : '·'}</span><span class="t">${VS.escapeHtml(p.text)}</span>
-          <span class="s${ready ? ' ok' : ''}">${ready ? 'AI' : '即時'}・${emotionName(p.emotion)}</span></button>`;
+          <span class="s${ready ? ' ok' : ''}">${ready ? 'AI' : VS.t('即時')}・${emotionName(p.emotion)}</span></button>`;
       }).join('')
-      : '<p class="small muted" style="margin:0">還沒有台詞，請到「文字轉語音」頁的台詞板新增。</p>';
+      : `<p class="small muted" style="margin:0">${VS.t('還沒有台詞，請到「文字轉語音」頁的台詞板新增。')}</p>`;
   }
 
   async function playPhrase(p) {
@@ -203,10 +211,10 @@
         talker.stop();
         if (m.text) setSub(m.text); else clearSubLater();
       }
-      $('#syncStatus').textContent = '已連線：正在接收文字轉語音頁的訊號';
+      $('#syncStatus').textContent = VS.t('已連線：正在接收文字轉語音頁的訊號');
     });
   } else {
-    $('#syncStatus').textContent = '這個瀏覽器不支援頁面同步，請直接在下方輸入文字。';
+    $('#syncStatus').textContent = VS.t('這個瀏覽器不支援頁面同步，請直接在下方輸入文字。');
   }
 
   window.addEventListener('pagehide', () => VS.engines.get('webspeech').stop());

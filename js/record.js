@@ -4,17 +4,26 @@
 
   const $ = VS.$;
   // 每句約 3～4 秒：引擎 B 的參考錄音越短生成越快；emotionId 用來依情緒挑參考錄音
-  const PROMPTS = [
+  // emotion 存中文原文（特徵檔共用格式），畫面上再翻譯
+  const PROMPTS_ZH = [
     { id: 'p1', emotionId: 'calm', emotion: '平靜', text: '大家好，歡迎來到我的頻道，今天輕鬆聊聊天。' },
     { id: 'p2', emotionId: 'happy', emotion: '開心', text: '哇！太棒了，謝謝你的禮物，我超開心的！' },
     { id: 'p3', emotionId: 'neutral', emotion: '敘述', text: '七隻小貓在綠色的草地上追著蝴蝶。' },
     { id: 'p4', emotionId: 'excited', emotion: '激動', text: '衝啊！這一波一定要贏，絕對不能放棄！' },
     { id: 'p5', emotionId: 'gentle', emotion: '溫柔', text: '晚安囉，記得早點休息，我們明天見。' }
   ];
+  const PROMPTS_EN = [
+    { id: 'p1', emotionId: 'calm', emotion: '平靜', text: "Hi everyone, welcome to my channel. Let's relax and chat today." },
+    { id: 'p2', emotionId: 'happy', emotion: '開心', text: "Wow, that's amazing! Thank you for the gift, I'm so happy!" },
+    { id: 'p3', emotionId: 'neutral', emotion: '敘述', text: 'Seven little cats chased a yellow butterfly across the field.' },
+    { id: 'p4', emotionId: 'excited', emotion: '激動', text: "Let's go! We have to win this round, never give up!" },
+    { id: 'p5', emotionId: 'gentle', emotion: '溫柔', text: "Good night, everyone. Get some rest, and I'll see you tomorrow." }
+  ];
+  const PROMPTS = VS.lang === 'en' ? PROMPTS_EN : PROMPTS_ZH;
   const MAX_SEC = 10;
   const REF_RATE = 24000;
   const MIN_OK = 3;
-  const STATUS_TEXT = { pass: '合格', warn: '可用', fail: '需重錄' };
+  const STATUS_TEXT = { pass: VS.t('合格'), warn: VS.t('可用'), fail: VS.t('需重錄') };
 
   const rec = new VS.Recorder();
   const clips = {}; // promptId -> { samples, analysis, url }
@@ -30,7 +39,7 @@
     const err = $('#micError');
     err.hidden = true;
     if (!window.isSecureContext) {
-      err.textContent = '麥克風需要在 https 或 localhost 網址下才能使用（放到 GitHub Pages 後就是 https）。';
+      err.textContent = VS.t('麥克風需要在 https 或 localhost 網址下才能使用（放到 GitHub Pages 後就是 https）。');
       err.hidden = false;
       return;
     }
@@ -38,13 +47,13 @@
       await rec.init();
     } catch (e) {
       const msg = {
-        NotAllowedError: '麥克風權限被拒絕。請點網址列旁的權限圖示，允許使用麥克風後重新整理。',
-        NotFoundError: '找不到麥克風，請確認裝置已連接。',
-        NotReadableError: '麥克風正被其他程式使用，請先關閉其他錄音程式。',
-        NotSupportedError: '這個瀏覽器不支援錄音，請改用最新版 Chrome、Edge 或 Safari。',
+        NotAllowedError: VS.t('麥克風權限被拒絕。請點網址列旁的權限圖示，允許使用麥克風後重新整理。'),
+        NotFoundError: VS.t('找不到麥克風，請確認裝置已連接。'),
+        NotReadableError: VS.t('麥克風正被其他程式使用，請先關閉其他錄音程式。'),
+        NotSupportedError: VS.t('這個瀏覽器不支援錄音，請改用最新版 Chrome、Edge 或 Safari。'),
         // 被包在預覽平台的框架裡、或 App 內建瀏覽器（LINE、Messenger 等）時常見
-        SecurityError: `目前的開啟方式不允許使用麥克風。請直接用電腦版 Chrome 打開正式網址：${VS.SITE_URL}record.html（不要在預覽平台或通訊軟體內建的瀏覽器裡開）。`
-      }[e.name] || ('無法開啟麥克風：' + e.message + `（建議改用電腦版 Chrome 打開 ${VS.SITE_URL}record.html）`);
+        SecurityError: VS.t('目前的開啟方式不允許使用麥克風。請直接用電腦版 Chrome 打開正式網址：{url}（不要在預覽平台或通訊軟體內建的瀏覽器裡開）。', { url: VS.SITE_URL + 'record.html' })
+      }[e.name] || VS.t('無法開啟麥克風：{msg}（建議改用電腦版 Chrome 打開 {url}）', { msg: e.message, url: VS.SITE_URL + 'record.html' });
       err.textContent = msg;
       err.hidden = false;
       return;
@@ -61,13 +70,13 @@
       <article class="card prompt-card" data-id="${p.id}">
         <div class="prompt-head">
           <span class="prompt-no">${String(i + 1).padStart(2, '0')}</span>
-          <span class="tag">${p.emotion}</span>
-          <span class="badge" data-role="badge">未錄音</span>
+          <span class="tag">${VS.t(p.emotion)}</span>
+          <span class="badge" data-role="badge">${VS.t('未錄音')}</span>
         </div>
         <p class="prompt-text">${p.text}</p>
         <div class="btn-row">
-          <button type="button" class="btn btn-pink" data-role="rec"><span class="rec-dot"></span><span data-role="recLabel">開始錄音</span></button>
-          <button type="button" class="btn" data-role="play" disabled>播放</button>
+          <button type="button" class="btn btn-pink" data-role="rec"><span class="rec-dot"></span><span data-role="recLabel">${VS.t('開始錄音')}</span></button>
+          <button type="button" class="btn" data-role="play" disabled>${VS.t('播放')}</button>
           <span class="timer" data-role="timer">0.0s</span>
         </div>
         <ul class="quality-list" data-role="msgs"></ul>
@@ -95,7 +104,7 @@
     startedAt = performance.now();
     const card = cardOf(id);
     card.classList.add('is-recording');
-    part(id, 'recLabel').textContent = '停止錄音';
+    part(id, 'recLabel').textContent = VS.t('停止錄音');
     part(id, 'play').disabled = true;
     tick = setInterval(() => {
       part(id, 'timer').textContent = ((performance.now() - startedAt) / 1000).toFixed(1) + 's';
@@ -115,8 +124,8 @@
     const analysis = VS.features.analyzeClip(samples, prompt.text);
     if (analysis.quality.status !== 'fail' && analysis.activeSec > 7) {
       analysis.quality.status = 'warn';
-      analysis.quality.messages = analysis.quality.messages.filter(m => m !== '錄音品質良好')
-        .concat('這句講得比較久，會讓 AI 音色複製變慢，可以試著講快一點');
+      analysis.quality.messages = analysis.quality.messages.filter(m => m !== VS.t('錄音品質良好'))
+        .concat(VS.t('這句講得比較久，會讓 AI 音色複製變慢，可以試著講快一點'));
     }
     // 參考錄音：裁掉頭尾靜音，前後各留一點空間
     const a = Math.max(0, Math.floor((analysis.startSec - 0.15) * REF_RATE));
@@ -127,7 +136,7 @@
 
     const card = cardOf(id);
     card.classList.remove('is-recording');
-    part(id, 'recLabel').textContent = '重新錄音';
+    part(id, 'recLabel').textContent = VS.t('重新錄音');
     part(id, 'play').disabled = false;
     part(id, 'timer').textContent = analysis.quality.durationSec.toFixed(1) + 's';
     const q = analysis.quality;
@@ -156,13 +165,13 @@
   function renderProgress() {
     $('#progressDots').innerHTML = PROMPTS.map((p, i) => {
       const c = clips[p.id];
-      return `<span class="${c ? c.analysis.quality.status : ''}" title="第 ${i + 1} 句">${i + 1}</span>`;
+      return `<span class="${c ? c.analysis.quality.status : ''}" title="${VS.t('第 {n} 句', { n: i + 1 })}">${i + 1}</span>`;
     }).join('');
     const n = usable().length;
     $('#btnBuild').disabled = n < MIN_OK;
     $('#finishHint').textContent = n < MIN_OK
-      ? `已完成 ${n} 句可用錄音，再 ${MIN_OK - n} 句就能產生特徵檔（5 句都錄效果最好）。`
-      : `已完成 ${n} 句可用錄音，可以產生特徵檔了！`;
+      ? VS.t('已完成 {n} 句可用錄音，再 {m} 句就能產生特徵檔（5 句都錄效果最好）。', { n, m: MIN_OK - n })
+      : VS.t('已完成 {n} 句可用錄音，可以產生特徵檔了！', { n });
   }
 
   /* ---------- 波形與音量 ---------- */
@@ -191,10 +200,10 @@
       const db = 10 * Math.log10(s / data.length + 1e-12);
       const pct = Math.max(0, Math.min(100, (db + 60) / 60 * 100));
       $('#levelBar').style.width = pct + '%';
-      $('#levelHint').textContent = db < -50 ? '目前很安靜，可以開始朗讀。'
+      $('#levelHint').textContent = VS.t(db < -50 ? '目前很安靜，可以開始朗讀。'
         : db < -38 ? '音量偏小，可以再靠近麥克風一點。'
         : db > -6 ? '太大聲了，請離麥克風遠一點。'
-        : '音量剛剛好！';
+        : '音量剛剛好！');
       requestAnimationFrame(draw);
     };
     draw();
@@ -205,20 +214,20 @@
     if (recordingId) finishRecording();
     const btn = $('#btnBuild');
     btn.disabled = true;
-    btn.textContent = '分析中…';
+    btn.textContent = VS.t('分析中…');
     await new Promise(r => setTimeout(r, 30));
     try {
       const list = usable();
       const features = VS.features.combine(list.map(p => clips[p.id].analysis));
       const summary = VS.features.summarize(features);
-      const name = $('#profileName').value.trim() || ('我的聲線 ' + new Date().toLocaleDateString('zh-TW'));
+      const name = $('#profileName').value.trim() || (VS.t('我的聲線') + ' ' + new Date().toLocaleDateString(VS.locale));
       const profile = {
         format: VS.profileStore.FORMAT,
         version: VS.profileStore.VERSION,
         id: VS.profileStore.newId(),
         name,
         createdAt: new Date().toISOString(),
-        language: 'zh-TW',
+        language: VS.lang === 'en' ? 'en-US' : 'zh-TW',
         features,
         summary: { pitch: summary.pitch, rate: summary.rate, timbre: summary.timbre, dynamics: summary.dynamics },
         engineHints: { suggestedGender: summary.suggestedGender },
@@ -238,11 +247,11 @@
       lastProfile = profile;
       showResult(profile);
       renderLibrary();
-      VS.toast('聲線特徵檔已建立並設為使用中', 'success');
+      VS.toast(VS.t('聲線特徵檔已建立並設為使用中'), 'success');
     } catch (e) {
-      VS.toast('建立失敗：' + e.message, 'error');
+      VS.toast(VS.t('建立失敗：') + e.message, 'error');
     } finally {
-      btn.textContent = '產生聲線特徵檔 ★';
+      btn.textContent = VS.t('產生聲線特徵檔 ★');
       renderProgress();
     }
   });
@@ -251,16 +260,16 @@
     const s = p.summary || VS.features.summarize(p.features);
     const f = p.features;
     return [
-      ['音高', `${s.pitch}（${Math.round(f.f0.median)} Hz）`],
-      ['語速', `${s.rate}（每秒 ${f.speakingRate} 字）`],
-      ['音色', s.timbre],
-      ['起伏', s.dynamics]
+      [VS.t('音高'), `${VS.t(s.pitch)}（${Math.round(f.f0.median)} Hz）`],
+      [VS.t('語速'), VS.t('{label}（每秒 {n} 字）', { label: VS.t(s.rate), n: f.speakingRate })],
+      [VS.t('音色'), VS.t(s.timbre)],
+      [VS.t('起伏'), VS.t(s.dynamics)]
     ].map(([k, v]) => `<div class="summary-chip"><small>${k}</small><b>${VS.escapeHtml(v)}</b></div>`).join('');
   }
 
   function showResult(p) {
     $('#resultCard').hidden = false;
-    $('#resultTitle').textContent = `「${p.name}」已建立`;
+    $('#resultTitle').textContent = VS.t('「{name}」已建立', { name: p.name });
     $('#resultSummary').innerHTML = summaryChips(p);
     $('#resultCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -272,7 +281,7 @@
     const list = await VS.profileStore.list();
     const active = VS.prefs.get('profile', '');
     if (!list.length) {
-      $('#profileList').innerHTML = '<div class="empty">還沒有聲線特徵檔，錄完 5 句台詞就會出現在這裡。</div>';
+      $('#profileList').innerHTML = `<div class="empty">${VS.t('還沒有聲線特徵檔，錄完 5 句台詞就會出現在這裡。')}</div>`;
       return;
     }
     $('#profileList').innerHTML = list.map(p => {
@@ -280,14 +289,14 @@
       const on = p.id === active;
       return `<article class="card profile-row${on ? ' is-active' : ''}" data-id="${p.id}">
         <div>
-          <h3>${VS.escapeHtml(p.name)} ${on ? '<span class="tag">使用中</span>' : ''}</h3>
-          <div class="meta">${new Date(p.createdAt).toLocaleString('zh-TW')}・音高 ${s.pitch}・語速 ${s.rate}・音色 ${s.timbre}・參考錄音 ${(p.references || []).length} 段</div>
+          <h3>${VS.escapeHtml(p.name)} ${on ? `<span class="tag">${VS.t('使用中')}</span>` : ''}</h3>
+          <div class="meta">${new Date(p.createdAt).toLocaleString(VS.locale)}・${VS.t('音高 {pitch}・語速 {rate}・音色 {timbre}・參考錄音 {n} 段', { pitch: VS.t(s.pitch), rate: VS.t(s.rate), timbre: VS.t(s.timbre), n: (p.references || []).length })}</div>
         </div>
         <div class="btn-row">
-          ${on ? '' : '<button type="button" class="btn btn-sm btn-yellow" data-act="use">設為使用中</button>'}
-          <button type="button" class="btn btn-sm" data-act="export">匯出</button>
-          <button type="button" class="btn btn-sm" data-act="rename">重新命名</button>
-          <button type="button" class="btn btn-sm btn-red" data-act="delete">刪除</button>
+          ${on ? '' : `<button type="button" class="btn btn-sm btn-yellow" data-act="use">${VS.t('設為使用中')}</button>`}
+          <button type="button" class="btn btn-sm" data-act="export">${VS.t('匯出')}</button>
+          <button type="button" class="btn btn-sm" data-act="rename">${VS.t('重新命名')}</button>
+          <button type="button" class="btn btn-sm btn-red" data-act="delete">${VS.t('刪除')}</button>
         </div>
       </article>`;
     }).join('');
@@ -302,20 +311,20 @@
     switch (btn.dataset.act) {
       case 'use':
         VS.prefs.set('profile', id);
-        VS.toast(`已切換到「${p.name}」`);
+        VS.toast(VS.t('已切換到「{name}」', { name: p.name }));
         break;
       case 'export':
         VS.profileStore.exportProfile(p);
         break;
       case 'rename': {
-        const name = prompt('新的名稱', p.name);
+        const name = prompt(VS.t('新的名稱'), p.name);
         if (name && name.trim()) { p.name = name.trim().slice(0, 24); await VS.profileStore.put(p); }
         break;
       }
       case 'delete':
-        if (!confirm(`確定要刪除「${p.name}」嗎？刪除後無法復原（已匯出的檔案不受影響）。`)) return;
+        if (!confirm(VS.t('確定要刪除「{name}」嗎？刪除後無法復原（已匯出的檔案不受影響）。', { name: p.name }))) return;
         await VS.profileStore.remove(id);
-        VS.toast('已刪除');
+        VS.toast(VS.t('已刪除'));
         break;
     }
     renderLibrary();
@@ -328,10 +337,10 @@
     try {
       const p = await VS.profileStore.importFile(file);
       VS.prefs.set('profile', p.id);
-      VS.toast(`已匯入「${p.name}」並設為使用中`, 'success');
+      VS.toast(VS.t('已匯入「{name}」並設為使用中', { name: p.name }), 'success');
       renderLibrary();
     } catch (err) {
-      VS.toast('匯入失敗：' + err.message, 'error');
+      VS.toast(VS.t('匯入失敗：') + err.message, 'error');
     }
   });
 

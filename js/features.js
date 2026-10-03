@@ -90,8 +90,17 @@
     return Math.round(v * k) / k;
   };
 
+  // 估算音節數：中文每字一個音節；英文依母音群估算；數字每位一個
   function countSpeechChars(text) {
-    return (String(text).match(/[㐀-鿿豈-﫿A-Za-z0-9]/g) || []).length;
+    const s = String(text);
+    const cjk = (s.match(/[\u3400-\u9fff\uf900-\ufaff]/g) || []).length;
+    const digits = (s.match(/[0-9]/g) || []).length;
+    let syllables = 0;
+    (s.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) || []).forEach(w => {
+      const groups = w.toLowerCase().replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').match(/[aeiouy]+/g);
+      syllables += Math.max(1, groups ? groups.length : 1);
+    });
+    return cjk + digits + syllables;
   }
 
   function analyzeClip(x, text) {
@@ -200,18 +209,18 @@
       status: 'pass'
     };
     const fail = [], warn = [];
-    if (activeSec < 1.2) fail.push('沒有偵測到足夠的說話聲，請靠近麥克風再錄一次');
-    else if (p90 < -45) fail.push('音量太小，請靠近麥克風或調高輸入音量');
+    if (activeSec < 1.2) fail.push(VS.t('沒有偵測到足夠的說話聲，請靠近麥克風再錄一次'));
+    else if (p90 < -45) fail.push(VS.t('音量太小，請靠近麥克風或調高輸入音量'));
     else {
-      if (quality.clipRatio > 0.002) warn.push('有爆音，請離麥克風遠一點');
-      if (p90 < -35) warn.push('音量偏小');
-      if (quality.snrDb < 15) warn.push('背景雜音偏大，建議換到安靜的地方');
-      if (activeDb.length && f0s.length / activeDb.length < 0.2) warn.push('偵測到的發聲段落偏少');
-      if (chars / Math.max(activeSec, 0.1) > 9) warn.push('錄音好像太短，可能沒有唸完整句');
+      if (quality.clipRatio > 0.002) warn.push(VS.t('有爆音，請離麥克風遠一點'));
+      if (p90 < -35) warn.push(VS.t('音量偏小'));
+      if (quality.snrDb < 15) warn.push(VS.t('背景雜音偏大，建議換到安靜的地方'));
+      if (activeDb.length && f0s.length / activeDb.length < 0.2) warn.push(VS.t('偵測到的發聲段落偏少'));
+      if (chars / Math.max(activeSec, 0.1) > 9) warn.push(VS.t('錄音好像太短，可能沒有唸完整句'));
     }
     if (fail.length) { quality.status = 'fail'; quality.messages = fail; }
     else if (warn.length) { quality.status = 'warn'; quality.messages = warn; }
-    else quality.messages = ['錄音品質良好'];
+    else quality.messages = [VS.t('錄音品質良好')];
 
     // 說話段落的起訖時間，用來裁掉參考錄音頭尾的靜音
     const startSec = first < 0 ? 0 : first * HOP / SR;

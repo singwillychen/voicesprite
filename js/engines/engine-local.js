@@ -29,8 +29,8 @@
   }
 
   function unavailableReason() {
-    if (VS.isSandboxPreview) return '預覽模式無法使用';
-    if (!player || typeof fetch !== 'function') return '此瀏覽器不支援';
+    if (VS.isSandboxPreview) return VS.t('預覽模式無法使用');
+    if (!player || typeof fetch !== 'function') return VS.t('此瀏覽器不支援');
     return '';
   }
 
@@ -52,18 +52,18 @@
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.message || `HTTP ${res.status}`);
       if (data.sovits && data.sovits.online) {
-        setStatus({ state: 'online', message: `已連線（橋接程式 v${data.version}）`, sovitsUrl: data.sovits.url });
+        setStatus({ state: 'online', message: VS.t('已連線（橋接程式 v{v}）', { v: data.version }), sovitsUrl: data.sovits.url });
       } else {
         setStatus({
           state: 'bridge-only',
-          message: `橋接程式已啟動，但連不到 GPT-SoVITS（${data.sovits ? data.sovits.url : ''}）。請確認 api_v2.py 正在執行，第一次啟動載入模型需要一點時間。`,
+          message: VS.t('橋接程式已啟動，但連不到 GPT-SoVITS（{url}）。請確認 api_v2.py 正在執行，第一次啟動載入模型需要一點時間。', { url: data.sovits ? data.sovits.url : '' }),
           sovitsUrl: data.sovits ? data.sovits.url : ''
         });
       }
     } catch (e) {
       setStatus({
         state: 'offline',
-        message: '連不到橋接程式。請先雙擊啟動檔；如果 Chrome 詢問「存取本機網路裝置」，請按允許。'
+        message: VS.t('連不到橋接程式。請先雙擊啟動檔；如果 Chrome 詢問「存取本機網路裝置」，請按允許。')
       });
     }
     return status;
@@ -99,17 +99,18 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          text_lang: 'zh',
+          // GPT-SoVITS 的 zh 模式可處理中英混合；純英文改用 en
+          text_lang: VS.textLang(text) === 'en' ? 'en' : 'zh',
           prompt_text: pick.r.text,
-          prompt_lang: 'zh',
+          prompt_lang: VS.textLang(pick.r.text) === 'en' ? 'en' : 'zh',
           ref_audio: refBase64(profile, pick),
           speed_factor: speed,
           text_split_method: 'cut5'
         })
       }, 600000);
     } catch (e) {
-      setStatus({ state: 'offline', message: '連不到橋接程式，請確認啟動檔視窗還開著。' });
-      throw new Error('連不到橋接程式，請確認已啟動（可到「本地引擎安裝教學」頁測試連線）');
+      setStatus({ state: 'offline', message: VS.t('連不到橋接程式，請確認啟動檔視窗還開著。') });
+      throw new Error(VS.t('連不到橋接程式，請確認已啟動（可到「本地引擎安裝教學」頁測試連線）'));
     }
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
@@ -125,7 +126,7 @@
   async function synthesize(text, profile, opts, cb) {
     opts = opts || {};
     cb = cb || {};
-    RT.requireProfile(profile, '本地開源引擎');
+    RT.requireProfile(profile, VS.t('本地開源引擎'));
     const pick = RT.pickReference(profile, opts);
     const speed = RT.speedFor(opts, 0.6, 1.6);
     const chunks = RT.chunkText(text, 20);
@@ -141,12 +142,12 @@
     opts = opts || {};
     hooks = hooks || {};
     stop();
-    try { RT.requireProfile(profile, '本地開源引擎'); } catch (e) { return Promise.reject(e); }
+    try { RT.requireProfile(profile, VS.t('本地開源引擎')); } catch (e) { return Promise.reject(e); }
     const pick = RT.pickReference(profile, opts);
     const speed = RT.speedFor(opts, 0.6, 1.6);
     const chunks = RT.chunkText(text, 20);
     return speaker.speak(chunks, i => synthChunk(chunks[i], profile, pick, speed), opts, hooks,
-      i => (i > 0 ? '本地引擎生成下一句中…' : '本地引擎生成中…'));
+      i => VS.t(i > 0 ? '本地引擎生成下一句中…' : '本地引擎生成中…'));
   }
 
   function stop() {
@@ -154,17 +155,17 @@
   }
 
   function describe(profile, opts) {
-    if (!RT.hasReferences(profile)) return { summary: '本地開源引擎需要聲線特徵檔，請先選擇或錄製聲紋' };
+    if (!RT.hasReferences(profile)) return { summary: VS.t('本地開源引擎需要聲線特徵檔，請先選擇或錄製聲紋') };
     const pick = RT.pickReference(profile, opts || {});
-    return { summary: `GPT-SoVITS｜參考錄音：${pick.r.emotion}（${pick.r.durationSec} 秒）｜語速 ×${RT.speedFor(opts || {}, 0.6, 1.6).toFixed(2)}｜${bridgeUrl()}` };
+    return { summary: VS.t('GPT-SoVITS｜參考錄音：{emotion}（{sec} 秒）｜語速 ×{speed}｜{url}', { emotion: VS.t(pick.r.emotion), sec: pick.r.durationSec, speed: RT.speedFor(opts || {}, 0.6, 1.6).toFixed(2), url: bridgeUrl() }) };
   }
 
   VS.engines.register({
     id: 'local',
-    name: '本地開源引擎：GPT-SoVITS',
+    name: VS.t('本地開源引擎：GPT-SoVITS'),
     short: 'L',
     status: 'beta',
-    description: '連到你電腦上的 GPT-SoVITS，中文音色最接近本人；有 NVIDIA 顯示卡時接近即時。需自行安裝。',
+    description: VS.t('連到你電腦上的 GPT-SoVITS，中文音色最接近本人；有 NVIDIA 顯示卡時接近即時。需自行安裝。'),
     capabilities: {
       download: true, cloneTimbre: true, needsServer: true, needsModel: false, needsProfile: true,
       realtime: false, emotion: 'reference', pitch: false, systemVoices: false, lipsync: 'level'

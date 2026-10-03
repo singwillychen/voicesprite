@@ -24,7 +24,7 @@
 
   function requireProfile(profile, engineName) {
     if (!hasReferences(profile)) {
-      throw new Error(`${engineName}需要含參考錄音的聲線特徵檔，請先到「錄製聲紋」錄音`);
+      throw new Error(VS.t('{engine}需要含參考錄音的聲線特徵檔，請先到「錄製聲紋」錄音', { engine: engineName }));
     }
   }
 
@@ -99,7 +99,7 @@
           for (let i = 0; i < chunks.length && !run.cancelled; i++) {
             try {
               run.results[i] = await synth(i, p => {
-                if (run.waiting === i && p != null) say(`AI 生成中… ${Math.round(p * 100)}%`);
+                if (run.waiting === i && p != null) say(VS.t('AI 生成中… {pct}%', { pct: Math.round(p * 100) }));
               });
             } catch (err) {
               run.error = err;

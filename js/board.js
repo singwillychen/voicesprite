@@ -14,7 +14,7 @@
 
   function add(text, emotion) {
     const l = list();
-    if (l.length >= MAX) throw new Error(`台詞板最多 ${MAX} 句`);
+    if (l.length >= MAX) throw new Error(VS.t('台詞板最多 {n} 句', { n: MAX }));
     const p = { id: 'ph_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), text, emotion, clip: null };
     l.push(p);
     save(l);

@@ -4,7 +4,7 @@ window.VS = window.VS || {};
   'use strict';
 
   // 每次更新網站時，HTML 引用的檔案都加上 ?v=版本號，避免瀏覽器混用新舊快取
-  VS.VERSION = '20261003-1600';
+  VS.VERSION = '20261003-1701';
 
   // 網站剛更新時若仍有舊版快取導致程式出錯，提示重新整理，而不是默默少了功能
   let staleWarned = false;
@@ -12,7 +12,7 @@ window.VS = window.VS || {};
     if (staleWarned || !e.filename || e.filename.indexOf(location.origin) !== 0 || !/\/js\//.test(e.filename)) return;
     staleWarned = true;
     const key = /Mac/i.test(navigator.platform || '') ? 'Cmd + Shift + R' : 'Ctrl + Shift + R';
-    const show = () => VS.toast(`網站剛更新，部分檔案還是舊版。請按 ${key} 重新整理。`, 'error');
+    const show = () => VS.toast(VS.t('網站剛更新，部分檔案還是舊版。請按 {key} 重新整理。', { key }), 'error');
     if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
   });
 
@@ -39,17 +39,17 @@ window.VS = window.VS || {};
   ));
 
   VS.EMOTIONS = [
-    { id: 'calm', name: '平靜' },
-    { id: 'happy', name: '開心' },
-    { id: 'angry', name: '生氣' },
-    { id: 'sad', name: '悲傷' },
-    { id: 'surprised', name: '驚訝' }
+    { id: 'calm', name: VS.t('平靜') },
+    { id: 'happy', name: VS.t('開心') },
+    { id: 'angry', name: VS.t('生氣') },
+    { id: 'sad', name: VS.t('悲傷') },
+    { id: 'surprised', name: VS.t('驚訝') }
   ];
 
   VS.TONES = [
-    { id: 'flat', name: '平淡' },
-    { id: 'gentle', name: '溫柔' },
-    { id: 'strong', name: '強烈' }
+    { id: 'flat', name: VS.t('平淡') },
+    { id: 'gentle', name: VS.t('溫柔') },
+    { id: 'strong', name: VS.t('強烈') }
   ];
 
   VS.toast = function (msg, type) {
@@ -111,8 +111,8 @@ window.VS = window.VS || {};
     });
     const bar = document.createElement('div');
     bar.className = 'preview-notice';
-    bar.innerHTML = '目前是預覽模式：切換頁面會在新分頁開啟正式網站，錄音與儲存功能也請在正式網站使用。' +
-      `<a href="${VS.SITE_URL}" target="_blank" rel="noopener">開啟正式網站 ↗</a>`;
+    bar.innerHTML = VS.t('目前是預覽模式：切換頁面會在新分頁開啟正式網站，錄音與儲存功能也請在正式網站使用。') +
+      `<a href="${VS.SITE_URL}" target="_blank" rel="noopener">${VS.t('開啟正式網站 ↗')}</a>`;
     document.body.prepend(bar);
   }
 

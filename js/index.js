@@ -10,7 +10,7 @@
   function speakAs(c, getSvg, onDone) {
     const engine = VS.engines.get('webspeech');
     if (!engine || !engine.isAvailable()) {
-      VS.toast('這個瀏覽器不支援語音合成，請改用 Chrome、Edge 或 Safari', 'error');
+      VS.toast(VS.t('這個瀏覽器不支援語音合成，請改用 Chrome、Edge 或 Safari'), 'error');
       return;
     }
     const talker = new C.Talker(getSvg);
@@ -25,7 +25,7 @@
         onSentence: () => talker.start(),
         onPause: () => talker.stop(),
         onEnd: () => { talker.stop(); if (onDone) onDone(); }
-      }).catch(err => VS.toast('播放失敗：' + err.message, 'error'));
+      }).catch(err => VS.toast(VS.t('播放失敗：') + err.message, 'error'));
     });
   }
 
@@ -34,7 +34,7 @@
     $('#heroChar').innerHTML = C.render(c.id);
     $('#heroBubble').textContent = c.line;
     $('#heroBurst').style.background = C.styleOf(c).color;
-    $('#selectedName').textContent = `${c.name}（${C.styleOf(c).name}・${c.gender === 'f' ? '女' : '男'}）`;
+    $('#selectedName').textContent = C.fullLabel(c);
   }
 
   function heroHello() {
@@ -46,9 +46,9 @@
   }
 
   function renderFilters() {
-    $('#styleFilters').innerHTML = chip('全部風格', styleFilter === 'all', 'all') +
+    $('#styleFilters').innerHTML = chip(VS.t('全部風格'), styleFilter === 'all', 'all') +
       C.STYLES.map(s => chip(s.name, styleFilter === s.id, s.id)).join('');
-    $('#genderFilters').innerHTML = [['all', '男女都看'], ['m', '男生'], ['f', '女生']]
+    $('#genderFilters').innerHTML = [['all', VS.t('男女都看')], ['m', VS.t('男生')], ['f', VS.t('女生')]]
       .map(([v, l]) => chip(l, genderFilter === v, v)).join('');
   }
 
@@ -59,16 +59,16 @@
       const st = C.styleOf(c);
       const sel = c.id === selected;
       return `<article class="char-card${sel ? ' is-selected' : ''}" data-id="${c.id}" style="--card-bg:${st.bg}">
-        <button type="button" class="char-pick" aria-pressed="${sel}" aria-label="選擇 ${c.name}">
+        <button type="button" class="char-pick" aria-pressed="${sel}" aria-label="${VS.t('選擇 {name}', { name: c.name })}">
           <div class="char-art">${C.render(c.id)}</div>
           <div class="char-meta">
-            <span class="tag" style="background:${st.color};color:#fff">${st.name}・${c.gender === 'f' ? '女' : '男'}</span>
+            <span class="tag" style="background:${st.color};color:#fff">${st.name}・${C.genderLabel(c)}</span>
             <h3>${c.name}</h3>
             <span class="en">${c.en}</span>
-            <p>「${c.line}」</p>
+            <p>${VS.lang === 'en' ? `“${c.line}”` : `「${c.line}」`}</p>
           </div>
         </button>
-        <button type="button" class="btn btn-sm btn-yellow char-hear">試聽 ▶</button>
+        <button type="button" class="btn btn-sm btn-yellow char-hear">${VS.t('試聽 ▶')}</button>
       </article>`;
     }).join('');
   }

@@ -22,14 +22,14 @@
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn btn-sm copy-btn';
-    btn.textContent = '複製';
+    btn.textContent = VS.t('複製');
     btn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(pre.querySelector('code').textContent);
-        btn.textContent = '已複製';
-        setTimeout(() => { btn.textContent = '複製'; }, 1500);
+        btn.textContent = VS.t('已複製');
+        setTimeout(() => { btn.textContent = VS.t('複製'); }, 1500);
       } catch (e) {
-        VS.toast('無法自動複製，請手動選取文字');
+        VS.toast(VS.t('無法自動複製，請手動選取文字'));
       }
     });
     pre.appendChild(btn);
@@ -51,7 +51,7 @@
     engine.setBridgeUrl($('#bridgeUrl').value);
     ['bridge', 'sovits', 'gen'].forEach(s => mark(s, ''));
     mark('bridge', 'running');
-    $('#checkMsg').textContent = '測試中…';
+    $('#checkMsg').textContent = VS.t('測試中…');
     $('#doneRow').hidden = true;
     const s = await engine.check();
     if (s.state === 'offline') {
@@ -69,31 +69,31 @@
     }
     mark('sovits', 'ok');
     $('#btnTestGen').disabled = false;
-    $('#checkMsg').textContent = '✅ 已連線！最後按「試著生成一句」，確認能用你的聲線說話。';
+    $('#checkMsg').textContent = VS.t('✅ 已連線！最後按「試著生成一句」，確認能用你的聲線說話。');
   });
 
   $('#btnTestGen').addEventListener('click', async () => {
     const profile = await VS.profileStore.getSelected().catch(() => null);
     if (!profile || !profile.references || !profile.references.length) {
       mark('gen', 'fail');
-      $('#checkMsg').innerHTML = '❌ 還沒有聲線特徵檔。請先到 <a href="record.html">錄製聲紋</a> 錄音，再回來測試。';
+      $('#checkMsg').innerHTML = VS.t('❌ 還沒有聲線特徵檔。請先到 <a href="record.html">錄製聲紋</a> 錄音，再回來測試。');
       return;
     }
     const btn = $('#btnTestGen');
     btn.disabled = true;
     mark('gen', 'running');
-    $('#checkMsg').textContent = `用「${profile.name}」生成中…第一次會比較久。`;
+    $('#checkMsg').textContent = VS.t('用「{name}」生成中…第一次會比較久。', { name: profile.name });
     const t0 = performance.now();
     try {
-      const out = await engine.synthesize('你好，這是本地引擎的測試聲音。', profile, { emotion: 'calm', tone: 'flat', rate: 1 });
+      const out = await engine.synthesize(VS.t('你好，這是本地引擎的測試聲音。'), profile, { emotion: 'calm', tone: 'flat', rate: 1 });
       const sec = ((performance.now() - t0) / 1000).toFixed(1);
       mark('gen', 'ok');
-      $('#checkMsg').textContent = `✅ 成功！生成花了 ${sec} 秒，正在播放。`;
+      $('#checkMsg').textContent = VS.t('✅ 成功！生成花了 {sec} 秒，正在播放。', { sec });
       $('#doneRow').hidden = false;
       await player.play(out.samples, out.sampleRate, { volume: 0.9 });
     } catch (e) {
       mark('gen', 'fail');
-      $('#checkMsg').textContent = '❌ 生成失敗：' + e.message;
+      $('#checkMsg').textContent = VS.t('❌ 生成失敗：') + e.message;
     } finally {
       btn.disabled = false;
     }

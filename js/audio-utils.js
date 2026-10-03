@@ -105,7 +105,7 @@
       }
       off += 8 + size + (size % 2);
     }
-    if (dataOff < 0 || bits !== 16) throw new Error('不支援的 WAV 格式');
+    if (dataOff < 0 || bits !== 16) throw new Error(VS.t('不支援的 WAV 格式'));
     const n = Math.floor(dataLen / 2 / ch);
     const samples = new Float32Array(n);
     for (let i = 0; i < n; i++) {

@@ -81,11 +81,11 @@
   async function importFile(file) {
     const text = await file.text();
     let p;
-    try { p = JSON.parse(text); } catch (e) { throw new Error('檔案不是有效的 JSON'); }
-    if (!p || p.format !== FORMAT) throw new Error('這不是 VoiceSprite 聲線特徵檔');
-    if (typeof p.version !== 'number' || p.version > VERSION) throw new Error('特徵檔版本較新，請更新網站後再匯入');
-    if (!p.features || !p.features.f0 || typeof p.features.f0.median !== 'number') throw new Error('特徵檔缺少必要的聲學資料');
-    p.name = String(p.name || '匯入的聲線').slice(0, 40);
+    try { p = JSON.parse(text); } catch (e) { throw new Error(VS.t('檔案不是有效的 JSON')); }
+    if (!p || p.format !== FORMAT) throw new Error(VS.t('這不是 VoiceSprite 聲線特徵檔'));
+    if (typeof p.version !== 'number' || p.version > VERSION) throw new Error(VS.t('特徵檔版本較新，請更新網站後再匯入'));
+    if (!p.features || !p.features.f0 || typeof p.features.f0.median !== 'number') throw new Error(VS.t('特徵檔缺少必要的聲學資料'));
+    p.name = String(p.name || VS.t('匯入的聲線')).slice(0, 40);
     if (!p.id || await get(p.id)) p.id = newId();
     p.importedAt = new Date().toISOString();
     if (!p.createdAt) p.createdAt = p.importedAt;

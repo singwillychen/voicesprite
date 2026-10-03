@@ -9,24 +9,24 @@
   const TONGUE = '#ff7a8a';
 
   const STYLES = [
-    { id: 'blazing', name: '熱血', en: 'BLAZING', color: '#ff3b30', bg: '#ffd23f', desc: '音量全開、永不放棄的熱血派' },
-    { id: 'cool', name: '冷酷', en: 'COOL', color: '#2f6fff', bg: '#8fe0ff', desc: '話不多，但每句都很有份量' },
-    { id: 'healing', name: '療癒', en: 'HEALING', color: '#2fbf71', bg: '#b8f2cf', desc: '溫柔慢語，聽了就想放鬆' },
-    { id: 'chuuni', name: '中二', en: 'CHUUNI', color: '#8f5cff', bg: '#cdb8ff', desc: '封印之力即將覺醒……' },
-    { id: 'genki', name: '元氣', en: 'GENKI', color: '#ff7a00', bg: '#ffb3d6', desc: '活力滿點，永遠在興奮' }
+    { id: 'blazing', name: '熱血', en: 'BLAZING', color: '#ff3b30', bg: '#ffd23f', desc: '音量全開、永不放棄的熱血派', nameEn: 'Blazing', descEn: 'Full volume, never gives up' },
+    { id: 'cool', name: '冷酷', en: 'COOL', color: '#2f6fff', bg: '#8fe0ff', desc: '話不多，但每句都很有份量', nameEn: 'Cool', descEn: 'Few words, every one counts' },
+    { id: 'healing', name: '療癒', en: 'HEALING', color: '#2fbf71', bg: '#b8f2cf', desc: '溫柔慢語，聽了就想放鬆', nameEn: 'Healing', descEn: 'Soft and slow, instantly relaxing' },
+    { id: 'chuuni', name: '中二', en: 'CHUUNI', color: '#8f5cff', bg: '#cdb8ff', desc: '封印之力即將覺醒……', nameEn: 'Chuuni', descEn: 'The sealed power is about to awaken…' },
+    { id: 'genki', name: '元氣', en: 'GENKI', color: '#ff7a00', bg: '#ffb3d6', desc: '活力滿點，永遠在興奮', nameEn: 'Genki', descEn: 'Endless energy, always excited' }
   ];
 
   const CHARS = [
-    { id: 'blazing-m', style: 'blazing', gender: 'm', name: '赤城 烈', en: 'RETSU', line: '燃燒吧！我的聲音要傳到每一個人的心裡！', hair: '#ff4b2b', hairShade: '#c8161d', iris: '#ffb300', outfit: '#22223a', outfit2: '#ff4b2b', emotion: 'happy', tone: 'strong' },
-    { id: 'blazing-f', style: 'blazing', gender: 'f', name: '緋村 焰', en: 'HOMURA', line: '熱血全開！今天也要拿下第一名！', hair: '#ff5a36', hairShade: '#c41f1f', iris: '#ffc21a', outfit: '#2a2238', outfit2: '#ff5a36', emotion: 'happy', tone: 'strong' },
-    { id: 'cool-m', style: 'cool', gender: 'm', name: '冰室 蒼', en: 'AO', line: '安靜。接下來的話，我只說一次。', hair: '#c9d6ee', hairShade: '#8a9cc4', iris: '#2f6fff', outfit: '#26324d', outfit2: '#e8f0ff', emotion: 'calm', tone: 'flat' },
-    { id: 'cool-f', style: 'cool', gender: 'f', name: '雪代 凜', en: 'RIN', line: '情緒波動？那種東西，我沒有。', hair: '#3c4a78', hairShade: '#232c4d', iris: '#38c6ff', outfit: '#1f2a44', outfit2: '#e8f0ff', emotion: 'calm', tone: 'flat' },
-    { id: 'healing-m', style: 'healing', gender: 'm', name: '森野 柚', en: 'YUZU', line: '辛苦了，先喝口熱茶，慢慢來就好。', hair: '#e6b980', hairShade: '#b9834a', iris: '#3fae7f', outfit: '#fff1d6', outfit2: '#ffffff', emotion: 'calm', tone: 'gentle' },
-    { id: 'healing-f', style: 'healing', gender: 'f', name: '桃瀨 蜜', en: 'MITSU', line: '今天也很努力了呢，給你一個大大的抱抱～', hair: '#ffb3d1', hairShade: '#ee7fa8', iris: '#e8558f', outfit: '#fff1d6', outfit2: '#ffffff', emotion: 'happy', tone: 'gentle' },
-    { id: 'chuuni-m', style: 'chuuni', gender: 'm', name: '黑翼 冥', en: 'MEI', line: '吾之右眼……又在隱隱作痛了。', hair: '#2d1b4e', hairShade: '#150b2b', iris: '#b44dff', outfit: '#17151f', outfit2: '#7b3dff', emotion: 'calm', tone: 'strong' },
-    { id: 'chuuni-f', style: 'chuuni', gender: 'f', name: '月詠 黯', en: 'KURO', line: '契約已經成立了，凡人，你逃不掉的。', hair: '#3a2466', hairShade: '#1c1036', iris: '#e0245e', iris2: '#ffd400', outfit: '#17151f', outfit2: '#7b3dff', emotion: 'calm', tone: 'strong' },
-    { id: 'genki-m', style: 'genki', gender: 'm', name: '日向 陽太', en: 'HINATA', line: '衝衝衝！今天的直播也要元氣滿滿！', hair: '#ffa62b', hairShade: '#d97800', iris: '#1e9bff', outfit: '#2ec4b6', outfit2: '#ffffff', emotion: 'happy', tone: 'strong' },
-    { id: 'genki-f', style: 'genki', gender: 'f', name: '星野 晴', en: 'HARE', line: '耶～大家早安安！今天也一起開心吧！', hair: '#ffc93c', hairShade: '#f08c00', iris: '#00b37a', outfit: '#ff5ca8', outfit2: '#ffffff', emotion: 'happy', tone: 'strong' }
+    { id: 'blazing-m', style: 'blazing', gender: 'm', name: '赤城 烈', en: 'RETSU', line: '燃燒吧！我的聲音要傳到每一個人的心裡！', nameEn: 'Retsu Akagi', lineEn: 'Burn bright! My voice will reach every single heart!', hair: '#ff4b2b', hairShade: '#c8161d', iris: '#ffb300', outfit: '#22223a', outfit2: '#ff4b2b', emotion: 'happy', tone: 'strong' },
+    { id: 'blazing-f', style: 'blazing', gender: 'f', name: '緋村 焰', en: 'HOMURA', line: '熱血全開！今天也要拿下第一名！', nameEn: 'Homura Himura', lineEn: 'Full power! I am taking first place again today!', hair: '#ff5a36', hairShade: '#c41f1f', iris: '#ffc21a', outfit: '#2a2238', outfit2: '#ff5a36', emotion: 'happy', tone: 'strong' },
+    { id: 'cool-m', style: 'cool', gender: 'm', name: '冰室 蒼', en: 'AO', line: '安靜。接下來的話，我只說一次。', nameEn: 'Ao Himuro', lineEn: 'Quiet. I will only say this once.', hair: '#c9d6ee', hairShade: '#8a9cc4', iris: '#2f6fff', outfit: '#26324d', outfit2: '#e8f0ff', emotion: 'calm', tone: 'flat' },
+    { id: 'cool-f', style: 'cool', gender: 'f', name: '雪代 凜', en: 'RIN', line: '情緒波動？那種東西，我沒有。', nameEn: 'Rin Yukishiro', lineEn: 'Emotions? I do not have those.', hair: '#3c4a78', hairShade: '#232c4d', iris: '#38c6ff', outfit: '#1f2a44', outfit2: '#e8f0ff', emotion: 'calm', tone: 'flat' },
+    { id: 'healing-m', style: 'healing', gender: 'm', name: '森野 柚', en: 'YUZU', line: '辛苦了，先喝口熱茶，慢慢來就好。', nameEn: 'Yuzu Morino', lineEn: 'Good work today. Have some warm tea and take your time.', hair: '#e6b980', hairShade: '#b9834a', iris: '#3fae7f', outfit: '#fff1d6', outfit2: '#ffffff', emotion: 'calm', tone: 'gentle' },
+    { id: 'healing-f', style: 'healing', gender: 'f', name: '桃瀨 蜜', en: 'MITSU', line: '今天也很努力了呢，給你一個大大的抱抱～', nameEn: 'Mitsu Momose', lineEn: 'You worked so hard today. Here is a big, big hug!', hair: '#ffb3d1', hairShade: '#ee7fa8', iris: '#e8558f', outfit: '#fff1d6', outfit2: '#ffffff', emotion: 'happy', tone: 'gentle' },
+    { id: 'chuuni-m', style: 'chuuni', gender: 'm', name: '黑翼 冥', en: 'MEI', line: '吾之右眼……又在隱隱作痛了。', nameEn: 'Mei Kurobane', lineEn: 'My right eye... it aches once more.', hair: '#2d1b4e', hairShade: '#150b2b', iris: '#b44dff', outfit: '#17151f', outfit2: '#7b3dff', emotion: 'calm', tone: 'strong' },
+    { id: 'chuuni-f', style: 'chuuni', gender: 'f', name: '月詠 黯', en: 'KURO', line: '契約已經成立了，凡人，你逃不掉的。', nameEn: 'Kuro Tsukuyomi', lineEn: 'The contract is sealed, mortal. There is no escape.', hair: '#3a2466', hairShade: '#1c1036', iris: '#e0245e', iris2: '#ffd400', outfit: '#17151f', outfit2: '#7b3dff', emotion: 'calm', tone: 'strong' },
+    { id: 'genki-m', style: 'genki', gender: 'm', name: '日向 陽太', en: 'HINATA', line: '衝衝衝！今天的直播也要元氣滿滿！', nameEn: 'Yota Hinata', lineEn: 'Go, go, go! Let us make today\'s stream full of energy!', hair: '#ffa62b', hairShade: '#d97800', iris: '#1e9bff', outfit: '#2ec4b6', outfit2: '#ffffff', emotion: 'happy', tone: 'strong' },
+    { id: 'genki-f', style: 'genki', gender: 'f', name: '星野 晴', en: 'HARE', line: '耶～大家早安安！今天也一起開心吧！', nameEn: 'Hare Hoshino', lineEn: 'Yay! Good morning, everyone! Let us have fun today too!', hair: '#ffc93c', hairShade: '#f08c00', iris: '#00b37a', outfit: '#ff5ca8', outfit2: '#ffffff', emotion: 'happy', tone: 'strong' }
   ];
 
   /* ---------- 頭髮 ---------- */
@@ -271,6 +271,16 @@
     return s;
   }
 
+  // 英文模式：名字、台詞、風格換成英文
+  if (VS.lang === 'en') {
+    STYLES.forEach(st => { st.name = st.nameEn; st.desc = st.descEn; });
+    CHARS.forEach(c => { c.name = c.nameEn; c.line = c.lineEn; });
+  }
+
+  const genderLabel = c => VS.t(c.gender === 'f' ? '女' : '男');
+  // 「名字（風格・性別）」
+  const fullLabel = c => VS.t('{name}（{style}・{gender}）', { name: c.name, style: styleOf(c).name, gender: genderLabel(c) });
+
   function get(id) { return CHARS.find(c => c.id === id) || null; }
   function styleOf(c) { return STYLES.find(s => s.id === (c && c.style)) || STYLES[0]; }
 
@@ -282,7 +292,7 @@
     const female = c.gender === 'f';
     const h = HAIR[c.id];
     const irisR = c.iris2 || c.iris;
-    return `<svg class="char-svg${opts.open ? ' is-open' : ''}" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.name}（${st.name}・${female ? '女' : '男'}）">` +
+    return `<svg class="char-svg${opts.open ? ' is-open' : ''}" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${fullLabel(c)}">` +
       `<g class="c-back" fill="${c.hairShade}" ${stroke()}>${h.back}</g>` +
       `<g class="c-body">${body(c)}</g>` +
       `<g class="c-head">` +
@@ -333,5 +343,5 @@
     }
   }
 
-  VS.characters = { STYLES, CHARS, get, styleOf, render, Talker };
+  VS.characters = { STYLES, CHARS, get, styleOf, render, Talker, genderLabel, fullLabel };
 })(window.VS);

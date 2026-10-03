@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261003-1600">
+  <link rel="stylesheet" href="css/style.css?v=20261003-1701">
 </head>
 <body class="live bg-green" data-page="live">
   <div class="live-stage">
@@ -17,7 +17,12 @@
   </div>
   <div class="live-sub" id="liveSub" aria-live="polite"></div>
 
-  <button type="button" class="btn btn-sm btn-yellow live-toggle" id="toggleControls" aria-expanded="true" aria-controls="controls">控制面板（H）</button>
+  <!-- 返回、語言切換、控制面板按鈕：和控制面板一起用 H 鍵隱藏／顯示 -->
+  <div class="live-topbar" id="liveTopbar">
+    <button type="button" class="btn btn-sm" id="btnBack">← 返回</button>
+    <span data-lang-slot></span>
+    <button type="button" class="btn btn-sm btn-yellow" id="toggleControls" aria-expanded="true" aria-controls="controls">控制面板（H）</button>
+  </div>
 
   <aside class="card live-controls" id="controls">
     <h2>直播模式</h2>
@@ -64,14 +69,16 @@
     <p class="small muted" style="margin:12px 0 0">按 H 可隱藏或顯示這個面板。網址加上 <code>?controls=0</code> 會直接隱藏。</p>
   </aside>
 
-  <script src="js/app.js?v=20261003-1600"></script>
-  <script src="js/characters.js?v=20261003-1600"></script>
-  <script src="js/profile-store.js?v=20261003-1600"></script>
-  <script src="js/clip-store.js?v=20261003-1600"></script>
-  <script src="js/board.js?v=20261003-1600"></script>
-  <script src="js/audio-player.js?v=20261003-1600"></script>
-  <script src="js/engines/engine-a-webspeech.js?v=20261003-1600"></script>
-  <script src="js/live.js?v=20261003-1600"></script>
+  <script src="js/i18n-en.js?v=20261003-1701"></script>
+  <script src="js/i18n.js?v=20261003-1701"></script>
+  <script src="js/app.js?v=20261003-1701"></script>
+  <script src="js/characters.js?v=20261003-1701"></script>
+  <script src="js/profile-store.js?v=20261003-1701"></script>
+  <script src="js/clip-store.js?v=20261003-1701"></script>
+  <script src="js/board.js?v=20261003-1701"></script>
+  <script src="js/audio-player.js?v=20261003-1701"></script>
+  <script src="js/engines/engine-a-webspeech.js?v=20261003-1701"></script>
+  <script src="js/live.js?v=20261003-1701"></script>
   <script>
   /* 檔案不完整時（例如直接在壓縮檔裡打開、只傳了 html），顯示說明而不是空白頁 */
   (function () {
@@ -82,13 +89,14 @@
     d.setAttribute('role', 'alert');
     d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fffbe0;color:#141414;font:16px/1.8 system-ui,sans-serif;padding:24px;overflow:auto';
     d.innerHTML = '<div style="max-width:640px;margin:0 auto">' +
-      '<h1 style="font-size:24px;margin:0 0 12px">網站檔案不完整，無法正常顯示</h1>' +
+      '<h1 style="font-size:24px;margin:0 0 12px">網站檔案不完整，無法正常顯示<br><small>Website files are incomplete</small></h1>' +
       '<p>這個網頁需要和 <b>css</b>、<b>js</b>、<b>images</b> 三個資料夾放在一起才能運作，目前讀不到它們。</p>' +
       '<ol>' +
       '<li>如果收到的是壓縮檔（.zip），請先按右鍵「<b>全部解壓縮</b>」，再打開解壓後資料夾裡的 index.html。不要直接在壓縮檔裡點開。</li>' +
       '<li>確認 index.html 旁邊有 css、js、images 三個資料夾。用 LINE 等通訊軟體傳檔時，資料夾常會不見，請改傳整個壓縮檔。</li>' +
       '<li><b>最推薦</b>：請對方直接打開網站的 GitHub Pages 網址。錄製聲紋也只有網址版能使用麥克風。</li>' +
-      '</ol></div>';
+      '</ol>' +
+      '<p lang="en" style="margin-top:20px;border-top:2px dashed #ccc;padding-top:12px">This page needs the <b>css</b>, <b>js</b> and <b>images</b> folders next to it. If you received a .zip file, extract it first and then open index.html. The easiest way is to open the official site: https://singwillychen.github.io/voicesprite/</p></div>';
     document.body.appendChild(d);
   })();
   </script>

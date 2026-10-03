@@ -17,7 +17,7 @@
     async init() {
       if (this.ctx) return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        const e = new Error('此瀏覽器不支援錄音');
+        const e = new Error(VS.t('此瀏覽器不支援錄音'));
         e.name = 'NotSupportedError';
         throw e;
       }
