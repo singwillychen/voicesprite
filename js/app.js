@@ -3,6 +3,19 @@ window.VS = window.VS || {};
 (function (VS) {
   'use strict';
 
+  // 每次更新網站時，HTML 引用的檔案都加上 ?v=版本號，避免瀏覽器混用新舊快取
+  VS.VERSION = '20261003-1600';
+
+  // 網站剛更新時若仍有舊版快取導致程式出錯，提示重新整理，而不是默默少了功能
+  let staleWarned = false;
+  window.addEventListener('error', e => {
+    if (staleWarned || !e.filename || e.filename.indexOf(location.origin) !== 0 || !/\/js\//.test(e.filename)) return;
+    staleWarned = true;
+    const key = /Mac/i.test(navigator.platform || '') ? 'Cmd + Shift + R' : 'Ctrl + Shift + R';
+    const show = () => VS.toast(`網站剛更新，部分檔案還是舊版。請按 ${key} 重新整理。`, 'error');
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+  });
+
   VS.$ = (sel, root) => (root || document).querySelector(sel);
   VS.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 

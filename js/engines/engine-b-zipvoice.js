@@ -91,7 +91,7 @@
     loadPromise = { promise, resolve, reject };
     setStatus({ state: 'downloading', loaded: 0, total: 0, message: '' });
     try {
-      worker = new Worker('js/engines/zipvoice-worker.js');
+      worker = new Worker('js/engines/zipvoice-worker.js?v=' + VS.VERSION);
     } catch (e) {
       fail('無法啟動背景執行緒：' + e.message);
       return promise;
