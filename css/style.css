@@ -257,6 +257,11 @@ body.live.bg-transparent { background: transparent; }
 body.no-controls .live-toggle, body.no-controls .live-controls { display: none; }
 .sync-status { font-size: 13px; color: var(--muted); }
 
+/* ---------- Sandbox preview notice ---------- */
+.preview-notice { background: var(--pink); color: #fff; font-weight: 700; font-size: 14px; text-align: center; padding: 8px 16px; border-bottom: 3px solid var(--ink); }
+.preview-notice a { color: #fff; margin-left: 10px; white-space: nowrap; }
+body.live .preview-notice { position: fixed; top: 0; left: 0; right: 0; z-index: 30; }
+
 /* ---------- Footer & Toast ---------- */
 .site-footer { background: var(--ink); color: #fff; padding: 32px 0; font-size: 14px; }
 .site-footer .inner { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }

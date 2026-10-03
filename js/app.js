@@ -83,7 +83,28 @@ window.VS = window.VS || {};
     try { VS.channel.postMessage(msg); } catch (e) { /* 忽略 */ }
   };
 
+  // 正式網址：在別人的預覽框架（例如 sandbox iframe）裡無法切換分頁時，改開這裡
+  VS.SITE_URL = 'https://singwillychen.github.io/voicesprite/';
+  VS.isSandboxPreview = location.protocol === 'about:' ||
+    (window.origin === 'null' && location.protocol !== 'file:');
+
+  function setupSandboxPreview() {
+    VS.$$('a[href]').forEach(a => {
+      const href = a.getAttribute('href');
+      if (!/^[a-z0-9-]+\.html(#.*)?$/i.test(href)) return;
+      a.href = VS.SITE_URL + href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+    });
+    const bar = document.createElement('div');
+    bar.className = 'preview-notice';
+    bar.innerHTML = '目前是預覽模式：切換頁面會在新分頁開啟正式網站，錄音與儲存功能也請在正式網站使用。' +
+      `<a href="${VS.SITE_URL}" target="_blank" rel="noopener">開啟正式網站 ↗</a>`;
+    document.body.prepend(bar);
+  }
+
   function setupPage() {
+    if (VS.isSandboxPreview) setupSandboxPreview();
     const page = document.body.dataset.page;
     VS.$$('.site-nav a').forEach(a => {
       if (a.dataset.page === page) a.setAttribute('aria-current', 'page');
