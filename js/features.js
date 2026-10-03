@@ -213,7 +213,10 @@
     else if (warn.length) { quality.status = 'warn'; quality.messages = warn; }
     else quality.messages = ['錄音品質良好'];
 
-    return { text, chars, activeSec, f0s, cents, mfccs, activeDb, quality };
+    // 說話段落的起訖時間，用來裁掉參考錄音頭尾的靜音
+    const startSec = first < 0 ? 0 : first * HOP / SR;
+    const endSec = first < 0 ? x.length / SR : (last * HOP + N) / SR;
+    return { text, chars, activeSec, startSec, endSec, f0s, cents, mfccs, activeDb, quality };
   }
 
   function combine(analyses) {

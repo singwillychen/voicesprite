@@ -43,6 +43,25 @@
         <div class="ctl-block">
           <h2>語音引擎</h2>
           <div class="engine-list" id="engineList" role="radiogroup" aria-label="語音引擎"></div>
+          <div class="model-panel" id="modelPanel" hidden>
+            <div class="model-head">
+              <strong>AI 模型（ZipVoice）</strong>
+              <span class="small" id="modelStatus">檢查中…</span>
+            </div>
+            <div class="progress" aria-hidden="true"><div class="progress-bar" id="modelBar"></div></div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-sm btn-yellow" id="btnModelLoad">下載模型（約 210 MB）</button>
+              <button type="button" class="btn btn-sm" id="btnModelClear">清除模型</button>
+              <label class="small" for="zvSteps">品質
+                <select id="zvSteps" class="select-sm">
+                  <option value="2">快速（2 步）</option>
+                  <option value="4" selected>標準（4 步）</option>
+                  <option value="8">精緻（8 步，很慢）</option>
+                </select>
+              </label>
+            </div>
+            <p class="small muted" style="margin:10px 0 0">模型只需下載一次，之後存在這台電腦的瀏覽器。生成比即時慢，同一句話生成後會快取，再播放不必等待。模型訓練資料含非商業授權條款，營利用途請先確認授權。</p>
+          </div>
         </div>
 
         <div class="ctl-block">
@@ -56,7 +75,7 @@
             <select id="profileSelect"></select>
             <div class="profile-summary" id="profileSummary"></div>
           </div>
-          <div class="field" style="margin-bottom:0">
+          <div class="field" id="voiceField" style="margin-bottom:0">
             <label class="field-label" for="voiceSelect">系統語音</label>
             <select id="voiceSelect"></select>
           </div>
@@ -94,6 +113,7 @@
               <input type="range" id="volume" min="0" max="100" step="1" value="90">
             </div>
           </div>
+          <p class="small muted" id="pitchNote" hidden style="margin:0 0 10px">引擎 B 的音高與情緒來自你的參考錄音：選「開心」會使用開心那段錄音。音高微調只在引擎 A 有效。</p>
           <div class="readout" id="readout">讀取語音中…</div>
         </div>
 
@@ -102,6 +122,7 @@
             <button type="button" class="btn btn-pink btn-lg" id="btnPlay">▶ 播放</button>
             <button type="button" class="btn" id="btnStop" disabled>■ 停止</button>
             <button type="button" class="btn" id="btnDownload">下載 WAV</button>
+            <button type="button" class="btn btn-cyan" id="btnBoardAdd">＋ 加入台詞板</button>
           </div>
           <p class="small muted" id="downloadNote" style="margin:10px 0 0"></p>
           <label class="check" style="margin-top:14px">
@@ -111,6 +132,22 @@
         </div>
       </section>
     </div>
+
+    <section class="card board-card" id="board">
+      <div class="board-head">
+        <div>
+          <p class="sticker">LIVE BOARD</p>
+          <h2>直播台詞板</h2>
+          <p class="small muted" style="margin:0">把常用台詞先用引擎 B 生成好，直播時在直播模式頁按按鈕或數字鍵 1～9 立刻播放。沒生成的台詞會改用引擎 A 即時說。</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-pink" id="btnBoardGen">全部預先生成（引擎 B）</button>
+          <button type="button" class="btn btn-sm" id="btnClipsClear">清除已生成語音</button>
+        </div>
+      </div>
+      <p class="small" id="boardStatus" aria-live="polite"></p>
+      <ol class="board-list" id="boardList"></ol>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -125,8 +162,11 @@
   <script src="js/audio-utils.js"></script>
   <script src="js/features.js"></script>
   <script src="js/profile-store.js"></script>
+  <script src="js/clip-store.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/audio-player.js"></script>
   <script src="js/engines/engine-a-webspeech.js"></script>
-  <script src="js/engines/engine-b-transformers.js"></script>
+  <script src="js/engines/engine-b-zipvoice.js"></script>
   <script src="js/engines/engine-local.js"></script>
   <script src="js/tts.js"></script>
   <script>

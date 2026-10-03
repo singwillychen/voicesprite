@@ -17,12 +17,18 @@
 
 - 麥克風只能在 https 或 localhost 下使用。GitHub Pages 是 https，可以直接用；在電腦上直接點兩下開 html 檔則無法錄音。
 - 錄音與特徵檔只存在瀏覽器（IndexedDB），不會上傳。
-- 目前使用引擎 A（瀏覽器內建語音），音色只能近似，且無法下載音檔。引擎 B（瀏覽器 AI 模型）與本地開源引擎已預留介面，見 `js/engines/`。
+- 引擎 A（瀏覽器內建語音）：即時、免下載，但音色只能近似，無法下載音檔。
+- 引擎 B（Beta，AI 音色複製）：sherpa-onnx WebAssembly + ZipVoice，在瀏覽器內用參考錄音複製音色，可下載 WAV。
+  - 首次下載約 210 MB 模型（來自 Hugging Face，固定版本），之後存在瀏覽器快取。
+  - 生成比即時慢，適合先做成「直播台詞板」，直播時用按鈕或數字鍵 1～9 播放。
+  - 僅支援電腦；手機與預覽框架會自動改用引擎 A。
+  - 模型訓練資料含非商業授權條款，營利用途請先確認授權。
+- 本地開源引擎已預留介面，見 `js/engines/engine-local.js`。
 
 ## 聲線特徵檔格式（.voiceprofile.json）
 
 ```
-format: "voicesprite-profile", version: 1
+format: "voicesprite-profile", version: 2（v1 仍可匯入）
 features: f0（基頻）、spectralCentroid、mfccMean、speakingRate、energy …
-references: 16kHz 參考錄音（base64 WAV）＋朗讀文字，供未來的音色複製引擎使用
+references: 24kHz 參考錄音（base64 WAV，已裁掉頭尾靜音）＋朗讀文字＋emotionId，供引擎 B 依情緒挑選
 ```

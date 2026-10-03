@@ -250,8 +250,12 @@
     short: 'A',
     status: 'ready',
     description: '用系統內建語音，依你的聲線調整音高與語速。免下載、可離線，但音色只能近似。',
-    capabilities: { download: false, cloneTimbre: false, needsServer: false },
+    capabilities: {
+      download: false, cloneTimbre: false, needsServer: false, needsModel: false, needsProfile: false,
+      realtime: true, emotion: 'params', pitch: true, systemVoices: true, lipsync: 'random'
+    },
     isAvailable: () => !!synth && typeof window.SpeechSynthesisUtterance !== 'undefined',
+    unavailableReason: () => '此瀏覽器不支援語音合成',
     loadVoices,
     listVoices: chineseVoices,
     voiceGender,

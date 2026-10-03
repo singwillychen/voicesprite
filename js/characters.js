@@ -315,9 +315,19 @@
       };
       tick();
     }
+    // 依實際音量開合嘴巴（引擎 B 等網頁內播放的聲音）；用遲滯避免閃爍
+    level(rms) {
+      if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+      const svg = this.getSvg();
+      if (!svg) return;
+      const db = 20 * Math.log10(rms + 1e-6);
+      this.open = this.open ? db > -42 : db > -34;
+      svg.classList.toggle('is-open', this.open);
+    }
     stop() {
       clearTimeout(this.timer);
       this.timer = null;
+      this.open = false;
       const svg = this.getSvg();
       if (svg) svg.classList.remove('is-open');
     }

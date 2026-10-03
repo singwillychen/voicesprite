@@ -5,7 +5,8 @@
   const DB_NAME = 'voicesprite';
   const STORE = 'profiles';
   const FORMAT = 'voicesprite-profile';
-  const VERSION = 1;
+  // v2：參考錄音改為 24 kHz、已裁切靜音，並加上 emotionId（v1 仍可匯入使用）
+  const VERSION = 2;
 
   const memory = new Map(); // IndexedDB 無法使用時（例如部分無痕模式）的備援
   let dbPromise = null;

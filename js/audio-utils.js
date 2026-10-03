@@ -80,5 +80,56 @@
     return new Blob([encodeWav(samples, sampleRate)], { type: 'audio/wav' });
   }
 
-  VS.audio = { merge, resample, encodeWav, bufferToBase64, wavDataUrl, wavBlob };
+  function dataUrlToBuffer(url) {
+    const bin = atob(url.slice(url.indexOf(',') + 1));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  // 解析 16-bit PCM WAV（特徵檔裡的參考錄音就是這個格式）
+  function parseWav(buf) {
+    const v = new DataView(buf);
+    let off = 12, sampleRate = 16000, bits = 16, ch = 1, dataOff = -1, dataLen = 0;
+    while (off + 8 <= v.byteLength) {
+      const id = String.fromCharCode(v.getUint8(off), v.getUint8(off + 1), v.getUint8(off + 2), v.getUint8(off + 3));
+      const size = v.getUint32(off + 4, true);
+      if (id === 'fmt ') {
+        ch = v.getUint16(off + 10, true);
+        sampleRate = v.getUint32(off + 12, true);
+        bits = v.getUint16(off + 22, true);
+      } else if (id === 'data') {
+        dataOff = off + 8;
+        dataLen = Math.min(size, v.byteLength - dataOff);
+        break;
+      }
+      off += 8 + size + (size % 2);
+    }
+    if (dataOff < 0 || bits !== 16) throw new Error('不支援的 WAV 格式');
+    const n = Math.floor(dataLen / 2 / ch);
+    const samples = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      let s = 0;
+      for (let c = 0; c < ch; c++) s += v.getInt16(dataOff + (i * ch + c) * 2, true);
+      samples[i] = s / ch / 32768;
+    }
+    return { samples, sampleRate };
+  }
+
+  // 依序接起多段音訊，中間插入靜音
+  function concat(parts, gapSec) {
+    if (!parts.length) return { samples: new Float32Array(0), sampleRate: 24000 };
+    const sampleRate = parts[0].sampleRate;
+    const gap = Math.round((gapSec || 0) * sampleRate);
+    const total = parts.reduce((n, p) => n + p.samples.length, 0) + gap * (parts.length - 1);
+    const out = new Float32Array(total);
+    let off = 0;
+    parts.forEach((p, i) => {
+      out.set(p.samples, off);
+      off += p.samples.length + (i < parts.length - 1 ? gap : 0);
+    });
+    return { samples: out, sampleRate };
+  }
+
+  VS.audio = { merge, resample, encodeWav, bufferToBase64, wavDataUrl, wavBlob, dataUrlToBuffer, parseWav, concat };
 })(window.VS);

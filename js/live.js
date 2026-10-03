@@ -128,7 +128,66 @@
 
   $('#ctlSpeak').addEventListener('click', speakHere);
   $('#ctlText').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) speakHere(); });
-  $('#ctlStop').addEventListener('click', () => VS.engines.get('webspeech').stop());
+
+  function stopAll() {
+    VS.engines.get('webspeech').stop();
+    player.stop();
+  }
+  $('#ctlStop').addEventListener('click', stopAll);
+
+  /* ---------- 直播台詞板：已生成的播放 AI 語音，未生成的用引擎 A 即時說 ---------- */
+  const player = new VS.AudioPlayer();
+  let profileId = VS.prefs.get('profile', '');
+  const emotionName = id => (VS.EMOTIONS.find(e => e.id === id) || VS.EMOTIONS[0]).name;
+
+  function renderBoard() {
+    profileId = VS.prefs.get('profile', '');
+    const list = VS.board.list();
+    $('#liveBoard').innerHTML = list.length
+      ? list.map((p, i) => {
+        const ready = VS.board.isReady(p, profileId);
+        return `<button type="button" data-id="${p.id}" title="${VS.escapeHtml(p.text)}">
+          <span class="k">${i < 9 ? i + 1 : '·'}</span><span class="t">${VS.escapeHtml(p.text)}</span>
+          <span class="s${ready ? ' ok' : ''}">${ready ? 'AI' : '即時'}・${emotionName(p.emotion)}</span></button>`;
+      }).join('')
+      : '<p class="small muted" style="margin:0">還沒有台詞，請到「文字轉語音」頁的台詞板新增。</p>';
+  }
+
+  async function playPhrase(p) {
+    stopAll();
+    if (p.emotion && p.emotion !== state.emotion) { state.emotion = p.emotion; syncControls(); renderChar(); }
+    const clip = VS.board.isReady(p, profileId) ? await VS.clipStore.get(p.clip.key).catch(() => null) : null;
+    if (!clip) {
+      $('#ctlText').value = p.text;
+      speakHere();
+      return;
+    }
+    setSub(p.text);
+    await player.play(clip.samples, clip.sampleRate, {
+      volume: Number(VS.prefs.get('slider.volume', 90)) / 100,
+      onLevel: v => talker.level(v)
+    });
+    talker.stop();
+    clearSubLater();
+  }
+
+  $('#liveBoard').addEventListener('click', e => {
+    const b = e.target.closest('button[data-id]');
+    const p = b && VS.board.list().find(x => x.id === b.dataset.id);
+    if (p) playPhrase(p);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.target.matches && e.target.matches('input, select, textarea')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || !/^[1-9]$/.test(e.key)) return;
+    const p = VS.board.list()[Number(e.key) - 1];
+    if (p) { e.preventDefault(); playPhrase(p); }
+  });
+
+  // 文字轉語音頁修改台詞板時即時更新
+  window.addEventListener('storage', e => {
+    if (e.key === 'vs.' + VS.board.KEY || e.key === 'vs.profile') renderBoard();
+  });
 
   /* ---------- 接收文字轉語音頁的同步 ---------- */
   if (VS.channel) {
@@ -155,4 +214,5 @@
   applyBody();
   syncControls();
   renderChar();
+  renderBoard();
 })(window.VS);

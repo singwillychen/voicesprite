@@ -51,11 +51,15 @@
       this.recording = true;
     }
 
+    // s16：給特徵分析用；s24：給引擎 B 當參考錄音（模型輸出是 24 kHz）
     stop() {
       this.recording = false;
       const merged = VS.audio.merge(this.chunks);
       this.chunks = [];
-      return VS.audio.resample(merged, this.ctx.sampleRate, VS.features.SR);
+      return {
+        s16: VS.audio.resample(merged, this.ctx.sampleRate, VS.features.SR),
+        s24: VS.audio.resample(merged, this.ctx.sampleRate, 24000)
+      };
     }
 
     timeDomain() {

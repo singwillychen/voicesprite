@@ -127,7 +127,7 @@
               <li>想單獨控制音量：安裝虛擬音訊裝置（Windows 用 VB-Cable，Mac 用 BlackHole），把系統輸出切到虛擬裝置，再在 OBS 加入該裝置當音訊來源。</li>
               <li>聲線特徵檔可在「錄製聲紋」頁匯出成 .json，在其他電腦匯入後直接使用。</li>
             </ol>
-            <p class="note">目前的引擎 A 由作業系統播放語音，所以要用上面的方法收音，暫時無法下載成音檔。</p>
+            <p class="note">引擎 A 由作業系統播放語音，要用上面的方法收音。引擎 B 的聲音由網頁播放，OBS 可用「應用程式音訊擷取」只收瀏覽器的聲音，也能下載成 WAV。</p>
           </article>
         </div>
       </div>
@@ -147,9 +147,9 @@
             <p>依你的音高與語速挑選並調整系統語音。免下載、可離線，但音色只是近似。</p>
           </article>
           <article class="card engine-card reveal">
-            <span class="tag tag-soon">即將推出</span>
-            <h3>引擎 B：瀏覽器 AI 模型</h3>
-            <p>在瀏覽器裡執行開源模型，用你的參考錄音複製音色，可下載音檔。首次使用需下載模型。</p>
+            <span class="tag tag-beta">BETA 試用中</span>
+            <h3>引擎 B：AI 音色複製</h3>
+            <p>在瀏覽器裡執行開源模型（ZipVoice），用你的參考錄音複製音色，可下載音檔。首次需下載約 210 MB，生成比即時慢，適合先做成直播台詞板。僅支援電腦。</p>
           </article>
           <article class="card engine-card reveal">
             <span class="tag tag-soon">即將推出</span>
@@ -172,8 +172,6 @@
   <script src="js/characters.js"></script>
   <script src="js/profile-store.js"></script>
   <script src="js/engines/engine-a-webspeech.js"></script>
-  <script src="js/engines/engine-b-transformers.js"></script>
-  <script src="js/engines/engine-local.js"></script>
   <script src="js/index.js"></script>
   <script>
   /* 檔案不完整時（例如直接在壓縮檔裡打開、只傳了 html），顯示說明而不是空白頁 */

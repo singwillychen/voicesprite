@@ -3,14 +3,16 @@
   'use strict';
 
   const $ = VS.$;
+  // 每句約 3～4 秒：引擎 B 的參考錄音越短生成越快；emotionId 用來依情緒挑參考錄音
   const PROMPTS = [
-    { id: 'p1', emotion: '平靜', text: '大家好，歡迎來到我的頻道。今天天氣很不錯，我們一起輕鬆地聊聊天吧。' },
-    { id: 'p2', emotion: '開心', text: '哇！真的嗎？太棒了，謝謝你送的禮物，我超級開心的！' },
-    { id: 'p3', emotion: '敘述', text: '七隻小貓在綠色的草地上追著蝴蝶，跑累了就躺在大樹下睡午覺。' },
-    { id: 'p4', emotion: '激動', text: '衝啊！這一波一定要贏，大家把力量借給我，絕對不能放棄！' },
-    { id: 'p5', emotion: '溫柔', text: '晚安囉，現在已經十一點半了，記得早點休息，我們明天見。' }
+    { id: 'p1', emotionId: 'calm', emotion: '平靜', text: '大家好，歡迎來到我的頻道，今天輕鬆聊聊天。' },
+    { id: 'p2', emotionId: 'happy', emotion: '開心', text: '哇！太棒了，謝謝你的禮物，我超開心的！' },
+    { id: 'p3', emotionId: 'neutral', emotion: '敘述', text: '七隻小貓在綠色的草地上追著蝴蝶。' },
+    { id: 'p4', emotionId: 'excited', emotion: '激動', text: '衝啊！這一波一定要贏，絕對不能放棄！' },
+    { id: 'p5', emotionId: 'gentle', emotion: '溫柔', text: '晚安囉，記得早點休息，我們明天見。' }
   ];
-  const MAX_SEC = 15;
+  const MAX_SEC = 10;
+  const REF_RATE = 24000;
   const MIN_OK = 3;
   const STATUS_TEXT = { pass: '合格', warn: '可用', fail: '需重錄' };
 
@@ -105,11 +107,21 @@
     recordingId = null;
     clearInterval(tick);
     clearTimeout(autoStop);
-    const samples = rec.stop();
+    const out = rec.stop();
+    const samples = out.s16;
     const prompt = PROMPTS.find(p => p.id === id);
     const analysis = VS.features.analyzeClip(samples, prompt.text);
+    if (analysis.quality.status !== 'fail' && analysis.activeSec > 7) {
+      analysis.quality.status = 'warn';
+      analysis.quality.messages = analysis.quality.messages.filter(m => m !== '錄音品質良好')
+        .concat('這句講得比較久，會讓 AI 音色複製變慢，可以試著講快一點');
+    }
+    // 參考錄音：裁掉頭尾靜音，前後各留一點空間
+    const a = Math.max(0, Math.floor((analysis.startSec - 0.15) * REF_RATE));
+    const b = Math.min(out.s24.length, Math.ceil((analysis.endSec + 0.2) * REF_RATE));
+    const ref24 = b > a ? out.s24.slice(a, b) : out.s24;
     if (clips[id] && clips[id].url) URL.revokeObjectURL(clips[id].url);
-    clips[id] = { samples, analysis, url: URL.createObjectURL(VS.audio.wavBlob(samples, VS.features.SR)) };
+    clips[id] = { samples, ref24, analysis, url: URL.createObjectURL(VS.audio.wavBlob(ref24, REF_RATE)) };
 
     const card = cardOf(id);
     card.classList.remove('is-recording');
@@ -211,11 +223,12 @@
         // 給引擎 B／本地開源引擎做音色複製用的參考錄音
         references: list.map(p => ({
           promptId: p.id,
+          emotionId: p.emotionId,
           text: p.text,
           emotion: p.emotion,
-          sampleRate: VS.features.SR,
-          durationSec: Math.round(clips[p.id].analysis.quality.durationSec * 10) / 10,
-          audio: VS.audio.wavDataUrl(clips[p.id].samples, VS.features.SR)
+          sampleRate: REF_RATE,
+          durationSec: Math.round(clips[p.id].ref24.length / REF_RATE * 10) / 10,
+          audio: VS.audio.wavDataUrl(clips[p.id].ref24, REF_RATE)
         }))
       };
       await VS.profileStore.put(profile);

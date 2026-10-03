@@ -19,7 +19,8 @@
     voiceURI: VS.prefs.get('voice', 'auto'),
     emotion: 'calm',
     tone: 'flat',
-    speaking: false
+    speaking: false,
+    boardBusy: false
   };
   if (!C.get(state.charId)) state.charId = 'blazing-m';
   const startChar = C.get(state.charId);
@@ -27,35 +28,41 @@
   state.tone = VS.prefs.get('tone', startChar.tone);
 
   const talker = new C.Talker(() => $('#stageChar .char-svg'));
+  const player = new VS.AudioPlayer();
+  const engineB = VS.engines.get('zipvoice');
 
   function engine() {
     const e = VS.engines.get(state.engineId);
-    return e && e.isAvailable() ? e : VS.engines.get('webspeech');
+    return e && e.status !== 'planned' && e.isAvailable() ? e : VS.engines.get('webspeech');
   }
 
-  function options() {
+  function options(overrides) {
     const c = C.get(state.charId);
-    return {
+    return Object.assign({
       voiceURI: state.voiceURI,
       emotion: state.emotion,
       tone: state.tone,
       rate: Number($('#rate').value),
       pitchShift: Number($('#pitch').value),
       volume: Number($('#volume').value) / 100,
+      steps: Number($('#zvSteps').value),
       genderHint: c.gender === 'f' ? 'female' : 'male'
-    };
+    }, overrides || {});
   }
 
   /* ---------- 引擎 ---------- */
   function renderEngines() {
-    if (!engine() || engine().id !== state.engineId) state.engineId = 'webspeech';
+    if (engine().id !== state.engineId) state.engineId = engine().id;
     $('#engineList').innerHTML = VS.engines.list.map(e => {
-      const ok = e.isAvailable();
+      const planned = e.status === 'planned';
+      const ok = !planned && e.isAvailable();
+      const note = planned ? '即將推出' : (!ok && e.unavailableReason ? e.unavailableReason() : '');
+      const beta = e.status === 'beta' ? ' <span class="tag tag-beta">BETA</span>' : '';
       return `<label class="engine-opt${ok ? '' : ' is-disabled'}">
         <input type="radio" name="engine" value="${e.id}" ${e.id === state.engineId ? 'checked' : ''} ${ok ? '' : 'disabled'}>
-        <span class="engine-name">${e.name}</span>
+        <span class="engine-name">${e.name}${beta}</span>
         <span>${e.description}</span>
-        ${ok ? '' : '<span><span class="tag tag-soon">即將推出</span></span>'}
+        ${note ? `<span><span class="tag tag-soon">${VS.escapeHtml(note)}</span></span>` : ''}
       </label>`;
     }).join('');
   }
@@ -65,17 +72,69 @@
     stop();
     state.engineId = e.target.value;
     VS.prefs.set('engine', state.engineId);
-    updateCapabilities();
+    updateEngineUI();
     loadVoices();
   });
 
-  function updateCapabilities() {
+  function updateEngineUI() {
     const caps = engine().capabilities;
     $('#btnDownload').disabled = !caps.download;
     $('#downloadNote').textContent = caps.download
-      ? ''
-      : '引擎 A 由作業系統直接播放，瀏覽器無法錄下合成語音，所以暫時不能下載。直播請用 OBS「桌面音訊」或虛擬音訊裝置收音；下載功能會在引擎 B／本地引擎推出時開放。';
+      ? '下載的是 AI 生成的語音，分享時請註明。'
+      : '引擎 A 由作業系統直接播放，無法下載。要下載 WAV 請切換到引擎 B；直播收音請用 OBS「桌面音訊」或虛擬音訊裝置。';
+    $('#pitch').disabled = caps.pitch === false;
+    $('#pitchNote').hidden = caps.pitch !== false;
+    $('#voiceField').hidden = !caps.systemVoices;
+    $('#modelPanel').hidden = !caps.needsModel;
+    if (caps.needsModel) updateModelPanel();
+    updateReadout();
+    renderBoard();
   }
+
+  /* ---------- 引擎 B 模型面板 ---------- */
+  const mb = n => (n / 1048576).toFixed(0);
+
+  async function updateModelPanel() {
+    if (!engineB) return;
+    const s = engineB.getStatus();
+    const cached = s.state === 'idle' || s.state === 'error' ? await engineB.isCached() : true;
+    const text = {
+      idle: cached ? '模型已下載，按「載入模型」即可使用（約 3 秒）。' : '尚未下載模型。',
+      downloading: s.cached ? '從快取讀取模型…' : `下載中：${mb(s.loaded)} / ${mb(s.total || engineB.modelSizeMB * 1048576)} MB`,
+      loading: '初始化模型中…',
+      ready: '✅ 模型就緒',
+      error: '❌ ' + s.message
+    }[s.state];
+    $('#modelStatus').textContent = text;
+    const pct = s.state === 'ready' || s.state === 'loading' ? 100
+      : s.state === 'downloading' && s.total ? s.loaded / s.total * 100 : 0;
+    $('#modelBar').style.width = pct + '%';
+    const btn = $('#btnModelLoad');
+    btn.textContent = cached ? '載入模型' : `下載模型（約 ${engineB.modelSizeMB} MB）`;
+    btn.disabled = s.state === 'downloading' || s.state === 'loading' || s.state === 'ready';
+  }
+
+  async function ensureModel() {
+    if (engineB.getStatus().state === 'ready') return true;
+    if (!(await engineB.isCached()) &&
+      !confirm(`第一次使用引擎 B 需要下載約 ${engineB.modelSizeMB} MB 的 AI 模型（之後不用再下載）。要現在下載嗎？`)) return false;
+    return true;
+  }
+
+  if (engineB) {
+    engineB.onStatus(() => updateModelPanel());
+    $('#btnModelLoad').addEventListener('click', async () => {
+      if (!(await ensureModel())) return;
+      engineB.load().then(() => VS.toast('AI 模型就緒', 'success')).catch(err => VS.toast('模型載入失敗：' + err.message, 'error'));
+    });
+    $('#btnModelClear').addEventListener('click', async () => {
+      if (!confirm('要清除已下載的 AI 模型嗎？下次使用需要重新下載約 210 MB。')) return;
+      await engineB.clearCache();
+      VS.toast('已清除模型');
+    });
+  }
+  $('#zvSteps').value = VS.prefs.get('zvSteps', '4');
+  $('#zvSteps').addEventListener('change', e => { VS.prefs.set('zvSteps', e.target.value); updateReadout(); });
 
   /* ---------- 角色 ---------- */
   function renderStage() {
@@ -127,12 +186,13 @@
   function renderProfileSummary() {
     const p = state.profile;
     if (!p) {
-      $('#profileSummary').innerHTML = '<span class="small muted">未選擇特徵檔時，會依角色性別挑選語音。</span>';
+      $('#profileSummary').innerHTML = '<span class="small muted">未選擇特徵檔時，引擎 A 會依角色性別挑選語音；引擎 B 必須選擇特徵檔。</span>';
       return;
     }
     const s = p.summary || VS.features.summarize(p.features);
     $('#profileSummary').innerHTML = [
-      `音高 ${s.pitch}`, `語速 ${s.rate}`, `音色 ${s.timbre}`, `${Math.round(p.features.f0.median)} Hz`
+      `音高 ${s.pitch}`, `語速 ${s.rate}`, `音色 ${s.timbre}`, `${Math.round(p.features.f0.median)} Hz`,
+      `參考錄音 ${(p.references || []).length} 段`
     ].map(t => `<span class="tag">${VS.escapeHtml(t)}</span>`).join('');
   }
 
@@ -141,13 +201,14 @@
     state.profile = e.target.value ? await VS.profileStore.get(e.target.value) : null;
     renderProfileSummary();
     updateReadout();
+    renderBoard();
   });
 
   async function loadVoices() {
     const sel = $('#voiceSelect');
-    const e = engine();
-    await e.loadVoices();
-    const voices = e.listVoices();
+    const a = VS.engines.get('webspeech');
+    await a.loadVoices();
+    const voices = a.listVoices();
     if (!voices.length) {
       sel.innerHTML = '<option value="auto">找不到中文語音，將使用系統預設</option>';
     } else {
@@ -218,6 +279,7 @@
   function updateReadout() {
     const d = engine().describe(state.profile, options());
     if (!d) { $('#readout').textContent = ''; return; }
+    if (d.summary) { $('#readout').textContent = d.summary; return; }
     const g = { female: '女聲', male: '男聲', unknown: '性別未知' }[d.voiceGender];
     $('#readout').textContent = `實際套用：${d.voiceName ? `${d.voiceName}（${g}）` : '系統預設語音'}｜音高 ×${d.pitch.toFixed(2)}｜語速 ×${d.rate.toFixed(2)}｜音量 ${Math.round(d.volume * 100)}%`;
   }
@@ -255,17 +317,16 @@
     $('#stage').classList.toggle('talking', on);
   }
 
-  function play() {
-    const text = $('#ttsText').value.trim();
-    if (!text) { VS.toast('請先輸入要說的話'); $('#ttsText').focus(); return; }
-    const e = engine();
-    setSpeaking(true);
-    e.speak(text, state.profile, options(), {
+  function playHooks(e) {
+    const levelMode = e.capabilities.lipsync === 'level';
+    return {
+      onStatusText: t => { $('#bubble').textContent = t; },
       onSentence: s => {
         $('#bubble').textContent = s;
-        talker.start();
+        if (!levelMode) talker.start();
         syncLive({ talking: true, text: s });
       },
+      onLevel: v => talker.level(v),
       onPause: () => {
         talker.stop();
         syncLive({ talking: false, text: $('#bubble').textContent });
@@ -276,24 +337,56 @@
         $('#bubble').textContent = IDLE_BUBBLE;
         syncLive({ talking: false, text: '' });
       }
-    }).catch(err => VS.toast('播放失敗：' + err.message, 'error'));
+    };
+  }
+
+  async function speakWith(e, text, opts) {
+    if (e.capabilities.needsProfile && !state.profile) {
+      VS.toast('引擎 B 需要聲線特徵檔，請先選擇或到「錄製聲紋」錄音', 'error');
+      return;
+    }
+    if (e.capabilities.needsModel && !(await ensureModel())) return;
+    setSpeaking(true);
+    e.speak(text, state.profile, opts, playHooks(e)).catch(err => VS.toast('播放失敗：' + err.message, 'error'));
+  }
+
+  function play() {
+    const text = $('#ttsText').value.trim();
+    if (!text) { VS.toast('請先輸入要說的話'); $('#ttsText').focus(); return; }
+    stop();
+    speakWith(engine(), text, options());
   }
 
   function stop() {
-    const e = engine();
-    if (e) e.stop();
+    VS.engines.list.forEach(e => { if (e.stop) e.stop(); });
+    player.stop();
   }
 
   $('#btnPlay').addEventListener('click', play);
   $('#btnStop').addEventListener('click', stop);
+
   $('#btnDownload').addEventListener('click', async () => {
     const e = engine();
-    if (!e.capabilities.download || !e.synthesize) return;
+    const text = $('#ttsText').value.trim();
+    if (!e.capabilities.download || !text) return;
+    if (e.capabilities.needsProfile && !state.profile) {
+      VS.toast('引擎 B 需要聲線特徵檔，請先選擇或錄音', 'error');
+      return;
+    }
+    if (e.capabilities.needsModel && !(await ensureModel())) return;
+    const btn = $('#btnDownload');
+    btn.disabled = true;
     try {
-      const blob = await e.synthesize($('#ttsText').value.trim(), state.profile, options());
-      VS.downloadBlob(blob, 'voicesprite-' + Date.now() + '.wav');
+      const out = await e.synthesize(text, state.profile, options(), {
+        onProgress: p => { btn.textContent = `生成中 ${Math.round(p * 100)}%`; }
+      });
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '');
+      VS.downloadBlob(VS.audio.wavBlob(out.samples, out.sampleRate), `voicesprite-ai-${stamp}.wav`);
     } catch (err) {
       VS.toast('下載失敗：' + err.message, 'error');
+    } finally {
+      btn.textContent = '下載 WAV';
+      btn.disabled = false;
     }
   });
 
@@ -303,6 +396,109 @@
     if (e.target.checked) syncLive({ talking: false, text: '' });
   });
 
+  /* ---------- 直播台詞板 ---------- */
+  const emotionName = id => (VS.EMOTIONS.find(e => e.id === id) || VS.EMOTIONS[0]).name;
+  const profileId = () => (state.profile ? state.profile.id : '');
+
+  function renderBoard() {
+    const list = VS.board.list();
+    const canGen = !!engineB && engineB.isAvailable();
+    $('#btnBoardGen').disabled = state.boardBusy || !canGen || !list.length;
+    $('#btnBoardGen').title = canGen ? '' : (engineB ? engineB.unavailableReason() : '');
+    if (!list.length) {
+      $('#boardList').innerHTML = '<li class="empty">還沒有台詞。在上方輸入文字、選好情緒後，按「＋ 加入台詞板」。</li>';
+      return;
+    }
+    $('#boardList').innerHTML = list.map((p, i) => {
+      const ready = VS.board.isReady(p, profileId());
+      return `<li class="board-row" data-id="${p.id}">
+        <span class="board-key">${i < 9 ? i + 1 : '·'}</span>
+        <span class="board-text">${VS.escapeHtml(p.text)}</span>
+        <span class="tag">${emotionName(p.emotion)}</span>
+        <span class="board-state ${ready ? 'ok' : ''}">${ready ? '已生成' : '未生成'}</span>
+        <span class="btn-row">
+          <button type="button" class="btn btn-sm btn-yellow" data-act="play">▶</button>
+          <button type="button" class="btn btn-sm" data-act="del" aria-label="刪除">刪除</button>
+        </span>
+      </li>`;
+    }).join('');
+  }
+
+  $('#btnBoardAdd').addEventListener('click', () => {
+    const text = $('#ttsText').value.trim();
+    if (!text) { VS.toast('請先輸入要加入的台詞'); return; }
+    try {
+      VS.board.add(text, state.emotion);
+      renderBoard();
+      VS.toast('已加入台詞板');
+    } catch (err) {
+      VS.toast(err.message, 'error');
+    }
+  });
+
+  async function playPhrase(p) {
+    stop();
+    const ready = VS.board.isReady(p, profileId());
+    const clip = ready ? await VS.clipStore.get(p.clip.key).catch(() => null) : null;
+    if (!clip) {
+      speakWith(engine(), p.text, options({ emotion: p.emotion }));
+      return;
+    }
+    setSpeaking(true);
+    $('#bubble').textContent = p.text;
+    syncLive({ talking: true, text: p.text, emotion: p.emotion });
+    await player.play(clip.samples, clip.sampleRate, { volume: options().volume, onLevel: v => talker.level(v) });
+    playHooks(engineB).onEnd();
+  }
+
+  $('#boardList').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = btn.closest('.board-row').dataset.id;
+    const p = VS.board.list().find(x => x.id === id);
+    if (!p) return;
+    if (btn.dataset.act === 'play') playPhrase(p);
+    if (btn.dataset.act === 'del') { VS.board.remove(id); renderBoard(); }
+  });
+
+  $('#btnBoardGen').addEventListener('click', async () => {
+    if (!state.profile) { VS.toast('請先選擇聲線特徵檔', 'error'); return; }
+    if (!(await ensureModel())) return;
+    const todo = VS.board.list().filter(p => !VS.board.isReady(p, profileId()));
+    if (!todo.length) { VS.toast('全部台詞都已生成'); return; }
+    state.boardBusy = true;
+    renderBoard();
+    const t0 = performance.now();
+    try {
+      for (let i = 0; i < todo.length; i++) {
+        const p = todo[i];
+        const base = `生成第 ${i + 1} / ${todo.length} 句：「${p.text.slice(0, 16)}」`;
+        $('#boardStatus').textContent = base;
+        const out = await engineB.synthesize(p.text, state.profile, options({ emotion: p.emotion }), {
+          onProgress: v => { $('#boardStatus').textContent = `${base} ${Math.round(v * 100)}%`; }
+        });
+        const key = 'board:' + p.id + ':' + state.profile.id;
+        await VS.clipStore.put(key, out.samples, out.sampleRate);
+        VS.board.setClip(p.id, { key, profileId: state.profile.id, at: Date.now() });
+        renderBoard();
+      }
+      $('#boardStatus').textContent = `✅ 完成 ${todo.length} 句，耗時 ${((performance.now() - t0) / 1000).toFixed(0)} 秒。打開直播模式頁就能用按鈕或數字鍵播放。`;
+    } catch (err) {
+      $('#boardStatus').textContent = '❌ 生成失敗：' + err.message;
+    } finally {
+      state.boardBusy = false;
+      renderBoard();
+    }
+  });
+
+  $('#btnClipsClear').addEventListener('click', async () => {
+    if (!confirm('要清除所有已生成的語音嗎？台詞文字會保留。')) return;
+    await VS.clipStore.clear();
+    VS.board.clearClips();
+    renderBoard();
+    VS.toast('已清除已生成語音');
+  });
+
   window.addEventListener('pagehide', stop);
 
   /* ---------- 初始化 ---------- */
@@ -310,7 +506,6 @@
     VS.toast('這個瀏覽器不支援語音合成，請改用 Chrome、Edge 或 Safari', 'error');
   }
   renderEngines();
-  updateCapabilities();
   renderCharStrip();
   setEmotion(state.emotion);
   setTone(state.tone);
@@ -318,5 +513,5 @@
   updateSliders();
   $('#ttsText').value = VS.prefs.get('ttsText', '') || startChar.line;
   onTextInput();
-  loadProfiles().then(loadVoices);
+  loadProfiles().then(() => { updateEngineUI(); return loadVoices(); });
 })(window.VS);
