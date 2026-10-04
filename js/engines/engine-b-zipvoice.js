@@ -146,12 +146,42 @@
     };
   }
 
+  /* WebAssembly 內部崩潰（多半是瀏覽器記憶體吃緊）後，模型狀態已損壞，之後每次生成都會失敗。
+   * 所以：崩潰時自動重新載入模型（從快取約 3 秒）並重試一次；另外每生成一定次數就趁空檔重新載入，避免記憶體累積。 */
+  const CRASH_RE = /memory access out of bounds|out of memory|unreachable|RuntimeError|Aborted|null function|index out of bounds/i;
+  const RECYCLE_EVERY = 30;
+  let generatedSinceLoad = 0;
+
+  function restart() {
+    teardown();
+    generatedSinceLoad = 0;
+    setStatus({ state: 'idle', loaded: 0, total: 0, message: '' });
+  }
+
+  async function generateSafe(text, ref, set, onProgress) {
+    if (generatedSinceLoad >= RECYCLE_EVERY && pending.size === 0) restart();
+    for (let attempt = 0; ; attempt++) {
+      await load();
+      try {
+        const res = await generateRaw(text, ref, set.speed, set.steps, onProgress);
+        generatedSinceLoad++;
+        return res;
+      } catch (err) {
+        if (!CRASH_RE.test(err.message)) throw err;
+        restart();
+        if (attempt >= 1) {
+          throw new Error(VS.t('AI 引擎記憶體不足，自動重新啟動後仍然失敗。請關閉其他分頁或程式後重新整理頁面，或把品質調成「快速」再試。'));
+        }
+        if (VS.toast) VS.toast(VS.t('AI 引擎發生錯誤，正在自動重新載入並重試…'));
+      }
+    }
+  }
+
   async function synthChunk(text, profile, pick, set, onProgress) {
     const k = VS.clipStore.key([MODEL_TAG, profile.id, pick.i, text, set.speed.toFixed(2), set.steps]);
     const hit = await VS.clipStore.get(k).catch(() => null);
     if (hit) return Object.assign(hit, { cached: true });
-    await load();
-    const res = await generateRaw(text, refAudio(profile, pick), set.speed, set.steps, onProgress);
+    const res = await generateSafe(text, refAudio(profile, pick), set, onProgress);
     VS.clipStore.put(k, res.samples, res.sampleRate).catch(() => {});
     return res;
   }

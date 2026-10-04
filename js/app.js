@@ -4,7 +4,7 @@ window.VS = window.VS || {};
   'use strict';
 
   // 每次更新網站時，HTML 引用的檔案都加上 ?v=版本號，避免瀏覽器混用新舊快取
-  VS.VERSION = '20261003-1701';
+  VS.VERSION = '20261004-1327';
 
   // 網站剛更新時若仍有舊版快取導致程式出錯，提示重新整理，而不是默默少了功能
   let staleWarned = false;

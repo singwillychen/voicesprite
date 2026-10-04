@@ -321,6 +321,8 @@ VS.I18N_EN = {
   "本地引擎生成下一句中…": "Local engine generating the next line…",
   "本地引擎生成中…": "Local engine generating…",
   "不支援的 WAV 格式": "Unsupported WAV format",
+  "AI 引擎記憶體不足，自動重新啟動後仍然失敗。請關閉其他分頁或程式後重新整理頁面，或把品質調成「快速」再試。": "The AI engine ran out of memory and still failed after restarting. Close other tabs or apps and reload the page, or set quality to \"Fast\" and try again.",
+  "AI 引擎發生錯誤，正在自動重新載入並重試…": "The AI engine hit an error. Reloading it and retrying…",
 
   /* ---------- 直播模式 ---------- */
   "← 返回": "← Back",
